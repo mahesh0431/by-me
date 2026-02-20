@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   site: "https://mahesh0431.github.io",
-  base: "/",
+  base: "/by-me",
   trailingSlash: "always",
   integrations: [sitemap()],
   markdown: {

@@ -5,5 +5,5 @@ export const SITE_DESCRIPTION =
 export const CONTACT_EMAIL = "contact@redacted.invalid";
 export const DISPLAY_TIMEZONE = "Asia/Kolkata";
 export const SITE_ORIGIN = "https://mahesh0431.github.io";
-export const BASE_PATH = "";
+export const BASE_PATH = "/by-me";
 export const DEFAULT_OG_IMAGE = "/og/default.svg";
