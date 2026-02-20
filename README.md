@@ -7,7 +7,6 @@ Personal website and blog built with Astro, designed for GitHub Pages project-re
 - Astro 5
 - Tailwind CSS v4 + CSS tokens
 - Astro Content Collections (Markdown posts)
-- Vitest (unit tests)
 - Prettier
 - GitHub Actions + GitHub Pages
 
@@ -31,7 +30,6 @@ Dev URL (default): `http://127.0.0.1:4321/by-me/`
 - `npm run build` - build static site
 - `npm run preview` - preview built output
 - `npm run check` - run Astro type/content checks
-- `npm test` - run unit tests
 - `npm run format` - apply Prettier formatting
 - `npm run format:check` - verify formatting
 

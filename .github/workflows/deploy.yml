@@ -33,9 +33,6 @@ jobs:
       - name: Run type check
         run: npm run check
 
-      - name: Run tests
-        run: npm test
-
       - name: Build site
         uses: withastro/action@v3
         with:

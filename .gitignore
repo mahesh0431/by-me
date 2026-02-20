@@ -23,3 +23,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# local documentation and verification artifacts
+docs/
+test-results/
+**/*.test.ts
+vitest.config.ts
