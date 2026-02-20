@@ -179,6 +179,12 @@ a:hover {
   color: var(--text-primary);
 }
 
+.site-footer__links {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Page Sections
    ───────────────────────────────────────────────────────────── */

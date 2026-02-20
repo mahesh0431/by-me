@@ -1,10 +1,13 @@
 ---
-import { CONTACT_EMAIL } from '../../lib/site';
+import { LINKEDIN_URL, X_URL } from '../../lib/site';
 ---
 
 <footer class="site-footer">
   <div class="container site-footer__inner">
     <span>© 2026</span>
-    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+    <div class="site-footer__links" aria-label="Social links">
+      <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">LinkedIn</a>
+      <a href={X_URL} target="_blank" rel="noreferrer">X</a>
+    </div>
   </div>
 </footer>
