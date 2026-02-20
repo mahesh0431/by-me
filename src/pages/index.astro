@@ -1,0 +1,35 @@
+---
+import PostCard from '../components/blog/PostCard.astro';
+import { getBlogPosts } from '../lib/blog';
+import { withBasePath } from '../lib/paths';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const latestPosts = (await getBlogPosts()).slice(0, 3);
+---
+
+<BaseLayout title="Home" description="Personal website and blog home page.">
+  <section class="home-intro">
+    <h1 class="section-heading">Hi, I'm Mahesh</h1>
+    <p class="section-copy">
+      Software engineer. This is my corner for engineering notes and technical writing.
+    </p>
+    <p style="margin-top: 0.75rem;">
+      <a href={withBasePath('/about/')}>About</a> · <a href={withBasePath('/blog/')}>Blog</a>
+    </p>
+  </section>
+
+  <section>
+    <h2 class="section-heading" style="font-size: 1.125rem; margin-bottom: 0.5rem;">Recent posts</h2>
+    {
+      latestPosts.length > 0 ? (
+        <div class="post-grid">
+          {latestPosts.map((post) => (
+            <PostCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <p style="color: var(--text-secondary);">No posts yet.</p>
+      )
+    }
+  </section>
+</BaseLayout>

@@ -1,0 +1,17 @@
+---
+import { withBasePath } from '../../lib/paths';
+
+interface Props {
+  href: string;
+  currentPath?: string;
+}
+
+const { href, currentPath = Astro.url.pathname } = Astro.props;
+const targetHref = withBasePath(href);
+const normalizePath = (value: string): string => (value !== '/' ? value.replace(/\/$/, '') : value);
+const isActive = normalizePath(currentPath) === normalizePath(targetHref);
+---
+
+<a class:list={['nav-link', { 'is-active': isActive }]} href={targetHref} aria-current={isActive ? 'page' : undefined}>
+  <slot />
+</a>

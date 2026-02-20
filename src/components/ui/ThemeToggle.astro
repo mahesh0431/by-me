@@ -1,0 +1,106 @@
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-live="polite"
+  aria-pressed="false"
+  aria-label="Toggle color theme"
+>
+  <svg class="theme-toggle__icon theme-toggle__icon--sun" data-theme-icon="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"></circle>
+    <line x1="12" y1="1" x2="12" y2="3"></line>
+    <line x1="12" y1="21" x2="12" y2="23"></line>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+    <line x1="1" y1="12" x2="3" y2="12"></line>
+    <line x1="21" y1="12" x2="23" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+  </svg>
+  <svg class="theme-toggle__icon theme-toggle__icon--moon" data-theme-icon="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+  <span class="theme-toggle__label" data-theme-label>Toggle theme</span>
+</button>
+
+<script is:inline>
+  (() => {
+    const storageKey = 'theme';
+    const root = document.documentElement;
+    const toggles = document.querySelectorAll('[data-theme-toggle]');
+
+    if (!toggles.length) {
+      return;
+    }
+
+    const getStoredTheme = () => {
+      const value = localStorage.getItem(storageKey);
+      return value === 'light' || value === 'dark' ? value : null;
+    };
+
+    const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    const getActiveTheme = () => {
+      const domTheme = root.dataset.theme;
+      if (domTheme === 'light' || domTheme === 'dark') {
+        return domTheme;
+      }
+
+      const storedTheme = getStoredTheme();
+      return storedTheme ?? getSystemTheme();
+    };
+
+    const applyTheme = (theme) => {
+      root.dataset.theme = theme;
+    };
+
+    const updateButtonIcons = () => {
+      const currentTheme = getActiveTheme();
+
+      toggles.forEach((toggle) => {
+        const sunIcon = toggle.querySelector('[data-theme-icon="sun"]');
+        const moonIcon = toggle.querySelector('[data-theme-icon="moon"]');
+
+        if (sunIcon && moonIcon) {
+          if (currentTheme === 'dark') {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+          } else {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+          }
+        }
+
+        toggle.setAttribute('aria-pressed', String(currentTheme === 'dark'));
+        toggle.setAttribute('aria-label', `Theme: ${currentTheme === 'dark' ? 'Dark' : 'Light'}. Toggle color theme.`);
+      });
+    };
+
+    toggles.forEach((toggle) => {
+      if (toggle.dataset.bound === 'true') {
+        return;
+      }
+
+      toggle.dataset.bound = 'true';
+      toggle.addEventListener('click', () => {
+        const nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme);
+        localStorage.setItem(storageKey, nextTheme);
+        updateButtonIcons();
+      });
+    });
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+      if (!getStoredTheme()) {
+        applyTheme(getSystemTheme());
+        updateButtonIcons();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+    applyTheme(getActiveTheme());
+    updateButtonIcons();
+  })();
+</script>

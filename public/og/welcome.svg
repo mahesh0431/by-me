@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Launching by-me social card">
+  <rect width="1200" height="630" fill="#162b24" />
+  <rect x="70" y="70" width="1060" height="490" rx="36" fill="#edf3ec" />
+  <text x="140" y="300" font-size="72" font-family="Georgia, serif" fill="#1b3d33">Launching by-me</text>
+  <text x="140" y="370" font-size="34" font-family="Arial, sans-serif" fill="#315d50">
+    Building thoughtful software, one post at a time.
+  </text>
+</svg>

@@ -1,0 +1,21 @@
+---
+import { withBasePath } from '../../lib/paths';
+import { SITE_NAME } from '../../lib/site';
+import ThemeToggle from '../ui/ThemeToggle.astro';
+import NavLink from './NavLink.astro';
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-brand" href={withBasePath('/')}>{SITE_NAME}</a>
+
+    <div class="site-header__actions">
+      <nav class="site-nav" aria-label="Primary">
+        <NavLink href="/">Home</NavLink>
+        <NavLink href="/about/">About</NavLink>
+        <NavLink href="/blog/">Posts</NavLink>
+      </nav>
+      <ThemeToggle />
+    </div>
+  </div>
+</header>

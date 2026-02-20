@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { withBasePath } from "../lib/paths";
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for does not exist."
+>
+  <section class="content-card">
+    <h1 class="page-title">404</h1>
+    <p style="color: var(--text-secondary); margin-top: 0.5rem;">Page not found</p>
+    <p style="margin-top: 1.5rem;">
+      <a href={withBasePath("/")}>← Back home</a>
+    </p>
+  </section>
+</BaseLayout>

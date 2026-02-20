@@ -1,0 +1,31 @@
+---
+import PostCard from '../../components/blog/PostCard.astro';
+import { getBlogPosts } from '../../lib/blog';
+import { withBasePath } from '../../lib/paths';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getBlogPosts();
+---
+
+<BaseLayout title="Blog" description="Latest posts sorted from newest to oldest.">
+  <section class="page-card">
+    <h1 class="section-heading">Blog</h1>
+    <p class="section-copy">All posts, newest first.</p>
+  </section>
+
+  {
+    posts.length > 0 ? (
+      <section class="post-grid">
+        {posts.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </section>
+    ) : (
+      <p style="color: var(--text-secondary);">No posts yet.</p>
+    )
+  }
+
+  <p style="margin-top: 1.5rem;">
+    <a href={withBasePath('/blog/archive/')}>View archive →</a>
+  </p>
+</BaseLayout>

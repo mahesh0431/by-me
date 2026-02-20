@@ -1,0 +1,89 @@
+---
+import Footer from "../components/layout/Footer.astro";
+import Header from "../components/layout/Header.astro";
+import { withBasePath } from "../lib/paths";
+import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from "../lib/site";
+import "../styles/tokens.css";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  twitterCard?: "summary" | "summary_large_image";
+}
+
+const {
+  title = SITE_NAME,
+  description = SITE_DESCRIPTION,
+  ogImage = DEFAULT_OG_IMAGE,
+  ogType = "website",
+  twitterCard = "summary_large_image",
+} = Astro.props;
+const pageTitle = title === SITE_NAME ? SITE_NAME : `${title} | ${SITE_NAME}`;
+const siteOrigin = Astro.site ? new URL(Astro.site.toString()) : new URL(SITE_ORIGIN);
+const canonicalUrl = new URL(Astro.url.pathname, siteOrigin).toString();
+
+function toAbsoluteUrl(path: string): string {
+  if (/^https?:\/\//.test(path)) {
+    return path;
+  }
+
+  return new URL(withBasePath(path), siteOrigin).toString();
+}
+
+const socialImageUrl = toAbsoluteUrl(ogImage);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta name="twitter:card" content={twitterCard} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <link rel="apple-touch-icon" sizes="180x180" href={withBasePath("/apple-touch-icon.png")} />
+    <link rel="icon" type="image/png" sizes="32x32" href={withBasePath("/favicon-32x32.png")} />
+    <link rel="icon" type="image/png" sizes="16x16" href={withBasePath("/favicon-16x16.png")} />
+    <link rel="icon" type="image/svg+xml" href={withBasePath("/favicon.svg")} />
+    <link rel="icon" href={withBasePath("/favicon.ico")} />
+    <title>{pageTitle}</title>
+    <script is:inline>
+      (() => {
+        const storageKey = "theme";
+        const root = document.documentElement;
+        const storedTheme = localStorage.getItem(storageKey);
+        const isStoredTheme = storedTheme === "light" || storedTheme === "dark";
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        root.dataset.theme = isStoredTheme ? storedTheme : prefersDark ? "dark" : "light";
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="site-shell">
+      <Header />
+      <main id="main-content" class="site-main">
+        <div class="container">
+          <slot />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "name": "by-me",
+  "type": "module",
+  "version": "0.0.1",
+  "packageManager": "npm@11.3.0",
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.7.0",
+    "@tailwindcss/vite": "^4.2.0",
+    "astro": "^5.17.1",
+    "tailwindcss": "^4.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.7"
+  }
+}

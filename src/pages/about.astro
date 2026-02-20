@@ -1,0 +1,19 @@
+---
+import { CONTACT_EMAIL } from '../lib/site';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="About the author and this website.">
+  <article>
+    <h1 class="section-heading">About</h1>
+    <p class="section-copy" style="margin-bottom: 1.5rem;">
+      I build software systems with a focus on clarity, reliability, and long-term maintainability.
+    </p>
+    <p>
+      This site is a space for practical engineering notes, project reflections, and lessons learned from real delivery environments.
+    </p>
+    <p>
+      Reach me at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+    </p>
+  </article>
+</BaseLayout>

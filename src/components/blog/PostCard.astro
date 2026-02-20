@@ -1,0 +1,21 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { withBasePath } from '../../lib/paths';
+import PostMeta from './PostMeta.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const postUrl = withBasePath(`/blog/${post.slug}/`);
+---
+
+<article class="post-card">
+  <h2>
+    <a class="post-card__link" href={postUrl}>{post.data.title}</a>
+  </h2>
+  <p>{post.data.description}</p>
+  <PostMeta pubDate={post.data.pubDate} updatedDate={post.data.updatedDate} tags={post.data.tags} />
+</article>

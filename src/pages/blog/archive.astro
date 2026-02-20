@@ -1,0 +1,32 @@
+---
+import { formatDate } from '../../lib/dates';
+import { getBlogArchiveGroups, getBlogPosts } from '../../lib/blog';
+import { withBasePath } from '../../lib/paths';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getBlogPosts();
+const archiveGroups = getBlogArchiveGroups(posts);
+---
+
+<BaseLayout title="Archive" description="Blog posts grouped by year.">
+  <section class="page-card">
+    <h1 class="section-heading">Archive</h1>
+    <p class="section-copy">Posts grouped by year.</p>
+  </section>
+
+  {
+    archiveGroups.map((group) => (
+      <section class="archive-year">
+        <h2>{group.year}</h2>
+        <ul>
+          {group.posts.map((post) => (
+            <li>
+              <a href={withBasePath(`/blog/${post.slug}/`)}>{post.data.title}</a>
+              <span>{formatDate(post.data.pubDate)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>

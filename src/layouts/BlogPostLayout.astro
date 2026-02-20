@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+import PostMeta from "../components/blog/PostMeta.astro";
+import { withBasePath } from "../lib/paths";
+import { DEFAULT_OG_IMAGE } from "../lib/site";
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  ogImage={socialImage}
+  ogType="article"
+>
+  <article class="blog-post">
+    <a class="back-link" href={withBasePath("/blog/")}>Back to blog</a>
+    <header>
+      <h1 class="blog-post__title">{post.data.title}</h1>
+      <p class="blog-post__lead">{post.data.description}</p>
+      <PostMeta pubDate={post.data.pubDate} updatedDate={post.data.updatedDate} tags={post.data.tags} />
+    </header>
+    <section class="blog-post__content">
+      <slot />
+    </section>
+  </article>
+</BaseLayout>

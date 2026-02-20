@@ -1,0 +1,27 @@
+---
+import { formatDate } from '../../lib/dates';
+
+interface Props {
+  pubDate: Date;
+  updatedDate?: Date;
+  tags?: string[];
+}
+
+const { pubDate, updatedDate, tags = [] } = Astro.props;
+---
+
+<div>
+  <p class="post-meta">
+    <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    {updatedDate && <span>Updated {formatDate(updatedDate)}</span>}
+  </p>
+  {
+    tags.length > 0 && (
+      <ul class="post-tags" aria-label="Tags">
+        {tags.map((tag) => (
+          <li>{tag}</li>
+        ))}
+      </ul>
+    )
+  }
+</div>
