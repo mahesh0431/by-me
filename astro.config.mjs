@@ -5,8 +5,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  site: "https://mahesh0431.github.io",
-  base: "/by-me",
+  site: "https://maheshpalavalli.com",
   trailingSlash: "always",
   integrations: [sitemap()],
   markdown: {

@@ -1,6 +1,6 @@
 # by-me
 
-Personal website and blog built with Astro, designed for GitHub Pages project-repo deployment.
+Personal website and blog built with Astro, deployed on GitHub Pages with a custom domain.
 
 ## Tech Stack
 
@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-Dev URL (default): `http://127.0.0.1:4321/by-me/`
+Dev URL (default): `http://127.0.0.1:4321/`
 
 ## Scripts
 
@@ -35,12 +35,12 @@ Dev URL (default): `http://127.0.0.1:4321/by-me/`
 
 ## Main Routes
 
-- `/by-me/` - Home
-- `/by-me/about/` - About
-- `/by-me/blog/` - Blog index
-- `/by-me/blog/archive/` - Year archive
-- `/by-me/blog/[slug]/` - Blog post page
-- `/by-me/rss.xml` - RSS feed
+- `/` - Home
+- `/about/` - About
+- `/blog/` - Blog index
+- `/blog/archive/` - Year archive
+- `/blog/[slug]/` - Blog post page
+- `/rss.xml` - RSS feed
 
 ## Deployment
 
@@ -48,8 +48,7 @@ Deployment is configured in `.github/workflows/deploy.yml`.
 
 Astro deployment config (`astro.config.mjs`):
 
-- `site: "https://mahesh0431.github.io"`
-- `base: "/by-me"`
+- `site: "https://maheshpalavalli.com"`
 - `trailingSlash: "always"`
 
 GitHub Pages should be configured to use **GitHub Actions** as source.

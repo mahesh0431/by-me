@@ -1,5 +1,3 @@
-import { BASE_PATH } from "./site";
-
 const ABSOLUTE_PROTOCOL = /^[a-zA-Z][a-zA-Z\d+\-.]*:/;
 
 function normalizeBase(base: string): string {
@@ -11,7 +9,7 @@ function normalizeBase(base: string): string {
   return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 }
 
-const BASE_URL = normalizeBase(import.meta.env.BASE_URL ?? "") || normalizeBase(`${BASE_PATH}/`);
+const BASE_URL = normalizeBase(import.meta.env.BASE_URL ?? "");
 
 function isExternalOrAnchor(path: string): boolean {
   return ABSOLUTE_PROTOCOL.test(path) || path.startsWith("//") || path.startsWith("#");

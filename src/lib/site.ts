@@ -5,6 +5,5 @@ export const SITE_DESCRIPTION =
 export const LINKEDIN_URL = "https://www.linkedin.com/in/maheshpalavalli/";
 export const X_URL = "https://x.com/maheshk_p";
 export const DISPLAY_TIMEZONE = "Asia/Kolkata";
-export const SITE_ORIGIN = "https://mahesh0431.github.io";
-export const BASE_PATH = "/by-me";
+export const SITE_ORIGIN = "https://maheshpalavalli.com";
 export const DEFAULT_OG_IMAGE = "/og/default.svg";
