@@ -7,6 +7,10 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   site: "https://maheshpalavalli.com",
   trailingSlash: "always",
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: "viewport",
+  },
   integrations: [sitemap()],
   markdown: {
     shikiConfig: {

@@ -13,17 +13,18 @@
   --text-secondary: #52525b;
   --text-tertiary: #71717a;
   --text-link: #18181b;
-  --text-link-hover: #3b82f6;
+  --text-link-hover: #0d9488;
 
   --border-color: #e4e4e7;
   --border-color-soft: #f4f4f5;
   --border-color-strong: #d4d4d8;
 
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-soft: rgba(59, 130, 246, 0.1);
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-soft: rgba(13, 148, 136, 0.1);
+  --post-link: #115e59;
 
-  --focus-color: #3b82f6;
+  --focus-color: #0d9488;
 
   /* Radius */
   --radius-xs: 4px;
@@ -65,17 +66,18 @@
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   --text-link: #fafafa;
-  --text-link-hover: #60a5fa;
+  --text-link-hover: #2dd4bf;
 
   --border-color: #27272a;
   --border-color-soft: #1f1f23;
   --border-color-strong: #3f3f46;
 
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --accent-soft: rgba(96, 165, 250, 0.1);
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.1);
+  --post-link: #14b8a6;
 
-  --focus-color: #60a5fa;
+  --focus-color: #2dd4bf;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);

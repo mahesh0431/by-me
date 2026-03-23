@@ -1,19 +1,53 @@
 ---
-import { LINKEDIN_URL, X_URL } from '../lib/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { LINKEDIN_URL, X_URL } from '../lib/site';
+import { withBasePath } from '../lib/paths';
+import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
+import IconX from '../components/icons/IconX.astro';
 ---
 
-<BaseLayout title="About" description="About the author and this website.">
-  <article>
-    <h1 class="section-heading">About</h1>
-    <p class="section-copy" style="margin-bottom: 1.5rem;">
-      I build software systems with a focus on clarity, reliability, and long-term maintainability.
-    </p>
-    <p>
-      This site is a space for practical engineering notes, project reflections, and lessons learned from real delivery environments.
-    </p>
-    <p>
-      Find me on <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">LinkedIn</a> and <a href={X_URL} target="_blank" rel="noreferrer">X</a>.
-    </p>
+<BaseLayout title="About" description="About Mahesh Palavalli, solutions architect at SAP.">
+  <article class="about">
+    <div class="about__header">
+      <img
+        src={withBasePath('/images/mahesh.png')}
+        alt="Mahesh Palavalli"
+        class="about__avatar"
+        width="120"
+        height="120"
+      />
+      <div>
+        <h1 class="about__name">Mahesh Palavalli</h1>
+        <p class="about__role">Solutions Architect at SAP</p>
+      </div>
+    </div>
+
+    <div class="about__body">
+      <p>
+        Hey! I've been building enterprise systems and applications for over 13 years now, across SAP, AI, data platforms, and hyperscaler environments. These days most of my work is around Generative AI, data, agentic systems, and figuring out how to take AI-native ideas into real production architecture for enterprise customers.
+      </p>
+      <p>
+        Before this I worked on digital government platforms in the UAE, real estate modernization, and large-scale SAP delivery. I also speak at various community events and I'm an author at SAP PRESS.
+      </p>
+      <p>
+        Here I share what I learn. Tech, AI, architecture, and whatever else I find interesting.
+      </p>
+
+      <div class="about__follow">
+        <span>Follow me to stay updated</span>
+        <div class="about-social">
+          <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="LinkedIn">
+            <IconLinkedIn size={20} />
+          </a>
+          <a href={X_URL} target="_blank" rel="noreferrer" aria-label="X (Twitter)">
+            <IconX size={20} />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="about__disclaimer">
+      All opinions and content on this site are my own and do not represent the views of my employer.
+    </aside>
   </article>
 </BaseLayout>
