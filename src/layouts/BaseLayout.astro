@@ -1,6 +1,5 @@
 ---
 import { ViewTransitions } from "astro:transitions";
-import Footer from "../components/layout/Footer.astro";
 import Header from "../components/layout/Header.astro";
 import { withBasePath } from "../lib/paths";
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from "../lib/site";
@@ -87,7 +86,6 @@ const socialImageUrl = toAbsoluteUrl(ogImage);
           <slot />
         </div>
       </main>
-      <Footer />
     </div>
   </body>
 </html>
