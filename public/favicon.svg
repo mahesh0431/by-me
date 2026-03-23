@@ -6,5 +6,5 @@
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="16" fill="url(#g)" />
-  <path d="M13 47V20l6-3 13 13 13-13 6 3v27h-8V29l-11 11-11-11v18z" fill="white" fill-opacity="0.95" />
+  <text x="32" y="44" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="-1" fill="white" fill-opacity="0.95">MP</text>
 </svg>
