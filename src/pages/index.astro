@@ -1,6 +1,9 @@
 ---
 import { withBasePath } from '../lib/paths';
+import { LINKEDIN_URL, X_URL } from '../lib/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
+import IconX from '../components/icons/IconX.astro';
 ---
 
 <BaseLayout title="Home" description="Personal website and blog home page.">
@@ -18,9 +21,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="section-copy">
           Solutions architect at SAP. I write here about tech, AI, architecture, and things I learn along the way.
         </p>
-        <p style="margin-top: 0.75rem;">
-          <a href={withBasePath('/about/')}>About</a> · <a href={withBasePath('/blog/')}>Blog</a>
-        </p>
+        <div class="home-intro__social">
+          <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="LinkedIn">
+            <IconLinkedIn size={20} />
+          </a>
+          <a href={X_URL} target="_blank" rel="noreferrer" aria-label="X (Twitter)">
+            <IconX size={20} />
+          </a>
+        </div>
       </div>
     </div>
   </section>
