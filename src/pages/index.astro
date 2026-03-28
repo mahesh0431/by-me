@@ -1,9 +1,15 @@
 ---
+import PostCard from '../components/blog/PostCard.astro';
 import { withBasePath } from '../lib/paths';
+import { getBlogPosts } from '../lib/blog';
 import { LINKEDIN_URL, X_URL } from '../lib/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
 import IconX from '../components/icons/IconX.astro';
+
+const recentPosts = (await getBlogPosts())
+  .filter((post) => !post.data.tags?.includes('archive'))
+  .slice(0, 5);
 ---
 
 <BaseLayout title="Home" description="Personal website and blog home page.">
@@ -32,4 +38,18 @@ import IconX from '../components/icons/IconX.astro';
       </div>
     </div>
   </section>
+
+  <section class="page-card">
+    <h2 class="section-heading">Recent Posts</h2>
+  </section>
+
+  <section class="post-grid">
+    {recentPosts.map((post) => (
+      <PostCard post={post} />
+    ))}
+  </section>
+
+  <p style="margin-top: 1.5rem;">
+    <a href={withBasePath('/blog/')}>View all posts →</a>
+  </p>
 </BaseLayout>
