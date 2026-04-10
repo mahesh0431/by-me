@@ -13,6 +13,19 @@ const blog = defineCollection({
   }),
 });
 
+const profile = defineCollection({
+  type: "content",
+  schema: z.object({
+    name: z.string(),
+    role: z.string(),
+    avatar: z.string(),
+    aboutDescription: z.string(),
+    homeHeading: z.string(),
+    homeIntro: z.string(),
+  }),
+});
+
 export const collections = {
   blog,
+  profile,
 };

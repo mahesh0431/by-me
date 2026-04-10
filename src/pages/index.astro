@@ -2,11 +2,13 @@
 import PostCard from '../components/blog/PostCard.astro';
 import { withBasePath } from '../lib/paths';
 import { getBlogPosts } from '../lib/blog';
+import { getProfile } from '../lib/profile';
 import { LINKEDIN_URL, X_URL } from '../lib/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
 import IconX from '../components/icons/IconX.astro';
 
+const profile = await getProfile();
 const recentPosts = (await getBlogPosts())
   .filter((post) => !post.data.tags?.includes('archive'))
   .slice(0, 5);
@@ -16,16 +18,16 @@ const recentPosts = (await getBlogPosts())
   <section class="home-intro">
     <div class="home-intro__row">
       <img
-        src={withBasePath('/images/mahesh.png')}
-        alt="Mahesh Palavalli"
+        src={withBasePath(profile.data.avatar)}
+        alt={profile.data.name}
         class="home-intro__avatar"
         width="88"
         height="88"
       />
       <div>
-        <h1 class="section-heading">Hi, I'm Mahesh</h1>
+        <h1 class="section-heading">{profile.data.homeHeading}</h1>
         <p class="section-copy">
-          Solutions architect at SAP. I write here about tech, AI, architecture, and things I learn along the way.
+          {profile.data.homeIntro}
         </p>
         <div class="home-intro__social">
           <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="LinkedIn">
