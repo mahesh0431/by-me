@@ -27,15 +27,15 @@
   (() => {
     const storageKey = 'theme';
     const root = document.documentElement;
-    const toggles = document.querySelectorAll('[data-theme-toggle]');
-
-    if (!toggles.length) {
-      return;
-    }
+    const controllerKey = 'themeControllerBound';
 
     const getStoredTheme = () => {
-      const value = localStorage.getItem(storageKey);
-      return value === 'light' || value === 'dark' ? value : null;
+      try {
+        const value = localStorage.getItem(storageKey);
+        return value === 'light' || value === 'dark' ? value : null;
+      } catch {
+        return null;
+      }
     };
 
     const getSystemTheme = () => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -54,8 +54,11 @@
       root.dataset.theme = theme;
     };
 
+    const getToggles = () => document.querySelectorAll('[data-theme-toggle]');
+
     const updateButtonIcons = () => {
       const currentTheme = getActiveTheme();
+      const toggles = getToggles();
 
       toggles.forEach((toggle) => {
         const sunIcon = toggle.querySelector('[data-theme-icon="sun"]');
@@ -76,31 +79,53 @@
       });
     };
 
-    toggles.forEach((toggle) => {
-      if (toggle.dataset.bound === 'true') {
+    const syncThemeUi = () => {
+      applyTheme(getActiveTheme());
+      updateButtonIcons();
+    };
+
+    const handleToggleClick = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
         return;
       }
 
-      toggle.dataset.bound = 'true';
-      toggle.addEventListener('click', () => {
-        const nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
-        applyTheme(nextTheme);
+      const toggle = target.closest('[data-theme-toggle]');
+      if (!toggle) {
+        return;
+      }
+
+      const nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+      applyTheme(nextTheme);
+
+      try {
         localStorage.setItem(storageKey, nextTheme);
-        updateButtonIcons();
-      });
-    });
+      } catch {
+        // Ignore storage failures and still honor the live in-memory theme.
+      }
+
+      updateButtonIcons();
+    };
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSystemThemeChange = () => {
       if (!getStoredTheme()) {
-        applyTheme(getSystemTheme());
-        updateButtonIcons();
+        syncThemeUi();
       }
     };
 
+    if (root.dataset[controllerKey] === 'true') {
+      syncThemeUi();
+      return;
+    }
+
+    root.dataset[controllerKey] = 'true';
+    document.addEventListener('click', handleToggleClick);
+    document.addEventListener('astro:page-load', syncThemeUi);
+    document.addEventListener('astro:after-swap', syncThemeUi);
+
     mediaQuery.addEventListener('change', handleSystemThemeChange);
 
-    applyTheme(getActiveTheme());
-    updateButtonIcons();
+    syncThemeUi();
   })();
 </script>

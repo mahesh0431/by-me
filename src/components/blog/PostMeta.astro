@@ -5,18 +5,29 @@ interface Props {
   pubDate: Date;
   updatedDate?: Date;
   tags?: string[];
+  readingTime?: string;
+  compact?: boolean;
+  showTags?: boolean;
 }
 
-const { pubDate, updatedDate, tags = [] } = Astro.props;
+const {
+  pubDate,
+  updatedDate,
+  tags = [],
+  readingTime,
+  compact = false,
+  showTags = true,
+} = Astro.props;
 ---
 
-<div>
+<div class:list={["post-meta-block", { "post-meta-block--compact": compact }]}>
   <p class="post-meta">
     <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    {readingTime && <span>{readingTime} read</span>}
     {updatedDate && <span>Updated {formatDate(updatedDate)}</span>}
   </p>
   {
-    tags.length > 0 && (
+    showTags && tags.length > 0 && (
       <ul class="post-tags" aria-label="Tags">
         {tags.map((tag) => (
           <li>{tag}</li>

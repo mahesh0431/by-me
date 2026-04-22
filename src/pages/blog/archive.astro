@@ -3,30 +3,51 @@ import { formatDate } from '../../lib/dates';
 import { getBlogArchiveGroups, getBlogPosts } from '../../lib/blog';
 import { withBasePath } from '../../lib/paths';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getReadingTimeLabel } from '../../lib/reading-time';
+import EntryIcon from '../../components/ui/EntryIcon.astro';
 
 const posts = await getBlogPosts();
 const archiveGroups = getBlogArchiveGroups(posts);
+const iconNames = ['spark', 'structure', 'book', 'note'] as const;
 ---
 
-<BaseLayout title="Archive" description="Blog posts grouped by year.">
-  <section class="page-card">
-    <h1 class="section-heading">Archive</h1>
-    <p class="section-copy">Posts grouped by year.</p>
+<BaseLayout title="Archive" description="Blog posts grouped by year." pageClass="page-archive">
+  <section class="page-heading page-heading--centered">
+    <h1 class="page-heading__title">Archive</h1>
+    <p class="page-heading__copy">Posts grouped by year.</p>
+    <span class="section-rule" aria-hidden="true"></span>
   </section>
 
-  {
-    archiveGroups.map((group) => (
-      <section class="archive-year">
-        <h2>{group.year}</h2>
-        <ul>
-          {group.posts.map((post) => (
-            <li>
-              <a href={withBasePath(`/blog/${post.slug}/`)}>{post.data.title}</a>
-              <span>{formatDate(post.data.pubDate)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ))
-  }
+  <div class="archive-stack">
+    {
+      archiveGroups.map((group, groupIndex) => (
+        <section class="archive-panel surface">
+          <div class="archive-panel__heading">
+            <div>
+              <h2 class="archive-panel__year">{group.year}</h2>
+            </div>
+            <p class="archive-panel__count">
+              {group.posts.length} {group.posts.length === 1 ? 'post' : 'posts'}
+            </p>
+          </div>
+          <ul class="archive-panel__list">
+            {group.posts.map((post, index) => (
+              <li class="archive-entry">
+                <div class="archive-entry__icon">
+                  <EntryIcon name={iconNames[(groupIndex + index) % iconNames.length]} />
+                </div>
+                <a class="archive-entry__title" href={withBasePath(`/blog/${post.slug}/`)}>
+                  {post.data.title}
+                </a>
+                <p class="archive-entry__meta">
+                  {formatDate(post.data.pubDate)} • {getReadingTimeLabel(post.body)} read
+                </p>
+                <span class="archive-entry__chevron" aria-hidden="true">›</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
 </BaseLayout>

@@ -4,14 +4,15 @@ import { withBasePath } from '../../lib/paths';
 interface Props {
   href: string;
   currentPath?: string;
+  isActive?: boolean;
 }
 
-const { href, currentPath = Astro.url.pathname } = Astro.props;
+const { href, currentPath = Astro.url.pathname, isActive } = Astro.props;
 const targetHref = withBasePath(href);
 const normalizePath = (value: string): string => (value !== '/' ? value.replace(/\/$/, '') : value);
-const isActive = normalizePath(currentPath) === normalizePath(targetHref);
+const resolvedIsActive = isActive ?? normalizePath(currentPath) === normalizePath(targetHref);
 ---
 
-<a class:list={['nav-link', { 'is-active': isActive }]} href={targetHref} aria-current={isActive ? 'page' : undefined}>
+<a class:list={['nav-link', { 'is-active': resolvedIsActive }]} href={targetHref} aria-current={resolvedIsActive ? 'page' : undefined}>
   <slot />
 </a>

@@ -1,5 +1,5 @@
 ---
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 import Header from "../components/layout/Header.astro";
 import { withBasePath } from "../lib/paths";
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from "../lib/site";
@@ -12,6 +12,7 @@ interface Props {
   ogImage?: string;
   ogType?: "website" | "article";
   twitterCard?: "summary" | "summary_large_image";
+  pageClass?: string;
 }
 
 const {
@@ -20,6 +21,7 @@ const {
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   twitterCard = "summary_large_image",
+  pageClass = "",
 } = Astro.props;
 const pageTitle = title === SITE_NAME ? SITE_NAME : `${title} | ${SITE_NAME}`;
 const siteOrigin = Astro.site ? new URL(Astro.site.toString()) : new URL(SITE_ORIGIN);
@@ -43,10 +45,8 @@ const socialImageUrl = toAbsoluteUrl(ogImage);
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" /></noscript>
-    <ViewTransitions />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,700;8..144,800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <ClientRouter />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <link rel="canonical" href={canonicalUrl} />
@@ -70,14 +70,22 @@ const socialImageUrl = toAbsoluteUrl(ogImage);
       (() => {
         const storageKey = "theme";
         const root = document.documentElement;
-        const storedTheme = localStorage.getItem(storageKey);
-        const isStoredTheme = storedTheme === "light" || storedTheme === "dark";
+        const readStoredTheme = () => {
+          try {
+            const value = localStorage.getItem(storageKey);
+            return value === "light" || value === "dark" ? value : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const storedTheme = readStoredTheme();
         const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        root.dataset.theme = isStoredTheme ? storedTheme : prefersDark ? "dark" : "light";
+        root.dataset.theme = storedTheme ?? (prefersDark ? "dark" : "light");
       })();
     </script>
   </head>
-  <body>
+  <body class:list={["site-body", pageClass]}>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="site-shell">
       <Header />

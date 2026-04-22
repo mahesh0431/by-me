@@ -3,10 +3,7 @@ import PostCard from '../components/blog/PostCard.astro';
 import { withBasePath } from '../lib/paths';
 import { getBlogPosts } from '../lib/blog';
 import { getProfile } from '../lib/profile';
-import { LINKEDIN_URL, X_URL } from '../lib/site';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
-import IconX from '../components/icons/IconX.astro';
 
 const profile = await getProfile();
 const recentPosts = (await getBlogPosts())
@@ -14,44 +11,42 @@ const recentPosts = (await getBlogPosts())
   .slice(0, 5);
 ---
 
-<BaseLayout title="Home" description="Personal website and blog home page.">
-  <section class="home-intro">
-    <div class="home-intro__row">
+<BaseLayout title="Home" description="Personal website and blog home page." pageClass="page-home">
+  <section class="home-hero surface surface--hero">
+    <div class="home-hero__art" aria-hidden="true">
+      <span class="home-hero__beam home-hero__beam--one"></span>
+      <span class="home-hero__beam home-hero__beam--two"></span>
+      <span class="home-hero__beam home-hero__beam--three"></span>
+      <span class="home-hero__grid"></span>
+    </div>
+
+    <div class="home-hero__portrait">
       <img
         src={withBasePath(profile.data.avatar)}
         alt={profile.data.name}
-        class="home-intro__avatar"
-        width="88"
-        height="88"
+        class="home-hero__avatar"
+        width="240"
+        height="240"
       />
-      <div>
-        <h1 class="section-heading">{profile.data.homeHeading}</h1>
-        <p class="section-copy">
-          {profile.data.homeIntro}
-        </p>
-        <div class="home-intro__social">
-          <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="LinkedIn">
-            <IconLinkedIn size={20} />
-          </a>
-          <a href={X_URL} target="_blank" rel="noreferrer" aria-label="X (Twitter)">
-            <IconX size={20} />
-          </a>
-        </div>
-      </div>
+    </div>
+
+    <div class="home-hero__content">
+      <h1 class="display-title">{profile.data.homeHeading}</h1>
+      <span class="section-rule" aria-hidden="true"></span>
+      <p class="hero-copy">{profile.data.homeIntro}</p>
     </div>
   </section>
 
-  <section class="page-card">
-    <h2 class="section-heading">Recent Posts</h2>
+  <section class="section-head">
+    <div>
+      <h2 class="section-title">Recent posts</h2>
+    </div>
+    <a class="section-link" href={withBasePath('/blog/archive/')}>View archive</a>
   </section>
 
-  <section class="post-grid">
-    {recentPosts.map((post) => (
-      <PostCard post={post} />
+  <section class="entry-list entry-list--home">
+    {recentPosts.map((post, index) => (
+      <PostCard post={post} index={index} variant="home" />
     ))}
   </section>
-
-  <p style="margin-top: 1.5rem;">
-    <a href={withBasePath('/blog/')}>View all posts →</a>
-  </p>
 </BaseLayout>

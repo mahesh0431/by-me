@@ -2,20 +2,54 @@
 import type { CollectionEntry } from 'astro:content';
 
 import { withBasePath } from '../../lib/paths';
+import { getReadingTimeLabel } from '../../lib/reading-time';
+import EntryIcon from '../ui/EntryIcon.astro';
 import PostMeta from './PostMeta.astro';
 
 interface Props {
   post: CollectionEntry<'blog'>;
+  index?: number;
+  variant?: 'home' | 'featured' | 'compact';
 }
 
-const { post } = Astro.props;
+const { post, index = 0, variant = 'compact' } = Astro.props;
 const postUrl = withBasePath(`/blog/${post.slug}/`);
+const iconNames = ['spark', 'structure', 'book', 'note'] as const;
+const iconName = iconNames[index % iconNames.length];
+const readingTime = getReadingTimeLabel(post.body);
+const showDescription = variant !== 'compact';
+const showTags = variant === 'featured';
 ---
 
-<article class="post-card">
-  <h2>
-    <a class="post-card__link" href={postUrl}>{post.data.title}</a>
-  </h2>
-  <p>{post.data.description}</p>
-  <PostMeta pubDate={post.data.pubDate} updatedDate={post.data.updatedDate} tags={post.data.tags} />
+<article class:list={['post-card', `post-card--${variant}`]}>
+  <div class="post-card__icon-wrap">
+    <EntryIcon name={iconName} />
+  </div>
+  <div class="post-card__body">
+    <h2 class="post-card__title">
+      <a class="post-card__link" href={postUrl}>{post.data.title}</a>
+    </h2>
+    {showDescription && <p class="post-card__description">{post.data.description}</p>}
+    {
+      showTags && (
+        <PostMeta
+          pubDate={post.data.pubDate}
+          updatedDate={post.data.updatedDate}
+          tags={post.data.tags}
+          readingTime={readingTime}
+        />
+      )
+    }
+  </div>
+  <div class="post-card__aside">
+    <PostMeta
+      pubDate={post.data.pubDate}
+      updatedDate={post.data.updatedDate}
+      tags={post.data.tags}
+      readingTime={readingTime}
+      compact
+      showTags={false}
+    />
+    <span class="post-card__chevron" aria-hidden="true">›</span>
+  </div>
 </article>

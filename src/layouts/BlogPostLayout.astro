@@ -3,6 +3,7 @@ import type { CollectionEntry } from "astro:content";
 
 import PostMeta from "../components/blog/PostMeta.astro";
 import { withBasePath } from "../lib/paths";
+import { getReadingTimeLabel } from "../lib/reading-time";
 import { DEFAULT_OG_IMAGE } from "../lib/site";
 import BaseLayout from "./BaseLayout.astro";
 
@@ -12,6 +13,7 @@ interface Props {
 
 const { post } = Astro.props;
 const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
+const readingTime = getReadingTimeLabel(post.body);
 ---
 
 <BaseLayout
@@ -19,16 +21,25 @@ const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
   description={post.data.description}
   ogImage={socialImage}
   ogType="article"
+  pageClass="page-article"
 >
-  <article class="blog-post">
-    <a class="back-link" href={withBasePath("/blog/")}>Back to blog</a>
-    <header>
-      <h1 class="blog-post__title">{post.data.title}</h1>
-      <p class="blog-post__lead">{post.data.description}</p>
-      <PostMeta pubDate={post.data.pubDate} updatedDate={post.data.updatedDate} tags={post.data.tags} />
-    </header>
-    <section class="blog-post__content">
-      <slot />
-    </section>
+  <article class="article-shell">
+    <a class="back-link" href={withBasePath("/blog/archive/")}>Back to archive</a>
+    <div class="article-frame surface">
+      <header class="article-hero">
+        <h1 class="article-title">{post.data.title}</h1>
+        <p class="article-lead">{post.data.description}</p>
+        <span class="section-rule" aria-hidden="true"></span>
+        <PostMeta
+          pubDate={post.data.pubDate}
+          updatedDate={post.data.updatedDate}
+          tags={post.data.tags}
+          readingTime={readingTime}
+        />
+      </header>
+      <section class="article-content">
+        <slot />
+      </section>
+    </div>
   </article>
 </BaseLayout>

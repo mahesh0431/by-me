@@ -5,45 +5,75 @@ import { withBasePath } from '../lib/paths';
 import { getProfile } from '../lib/profile';
 import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
 import IconX from '../components/icons/IconX.astro';
+import EntryIcon from '../components/ui/EntryIcon.astro';
 
 const profile = await getProfile();
-const { Content } = await profile.render();
+const paragraphs = profile.body.trim().split(/\n\s*\n/);
+const sections = [
+  { title: "Hey! I'm Mahesh.", icon: 'spark', body: paragraphs[0] },
+  { title: 'What I do', icon: 'structure', body: paragraphs[1] },
+  { title: 'Writing and sharing', icon: 'book', body: paragraphs[2] },
+] as const;
 ---
 
-<BaseLayout title="About" description={profile.data.aboutDescription}>
-  <article class="about">
-    <div class="about__header">
+<BaseLayout title="About" description={profile.data.aboutDescription} pageClass="page-about">
+  <article class="about-layout">
+    <aside class="about-card surface">
       <img
         src={withBasePath(profile.data.avatar)}
         alt={profile.data.name}
-        class="about__avatar"
-        width="120"
-        height="120"
+        class="about-card__avatar"
+        width="320"
+        height="320"
       />
-      <div>
-        <h1 class="about__name">{profile.data.name}</h1>
-        <p class="about__role">{profile.data.role}</p>
+      <div class="about-card__identity">
+        <h1 class="about-card__name">{profile.data.name}</h1>
+        <p class="about-card__role">{profile.data.role}</p>
+        <p class="about-card__subrole">Office of the CTO at SAP</p>
+        <span class="section-rule" aria-hidden="true"></span>
+        <p class="about-card__summary">
+          Writing about AI, architecture, learning, and the return to writing.
+        </p>
       </div>
-    </div>
 
-    <div class="about__body">
-      <Content />
-
-      <div class="about__follow">
-        <span>Follow me to stay updated</span>
-        <div class="about-social">
-          <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" aria-label="LinkedIn">
-            <IconLinkedIn size={20} />
-          </a>
-          <a href={X_URL} target="_blank" rel="noreferrer" aria-label="X (Twitter)">
-            <IconX size={20} />
-          </a>
-        </div>
+      <div class="about-card__social" aria-label="Social links">
+        <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">
+          <IconLinkedIn size={18} />
+          <span>LinkedIn</span>
+        </a>
+        <a href={X_URL} target="_blank" rel="noreferrer">
+          <IconX size={18} />
+          <span>X (Twitter)</span>
+        </a>
       </div>
-    </div>
-
-    <aside class="about__disclaimer">
-      All opinions and content on this site are my own and do not represent the views of my employer.
     </aside>
+
+    <div class="about-flow">
+      {sections.map((section) => (
+        <section class="about-section surface">
+          <div class="about-section__icon">
+            <EntryIcon name={section.icon} />
+          </div>
+          <div>
+            <h2 class="about-section__title">{section.title}</h2>
+            <span class="section-rule section-rule--small" aria-hidden="true"></span>
+            <p class="about-section__body">{section.body}</p>
+          </div>
+        </section>
+      ))}
+
+      <aside class="about-note about-note--disclaimer surface">
+        <div class="about-note__icon">
+          <EntryIcon name="disclaimer" />
+        </div>
+        <div>
+          <h2 class="about-note__title">Disclaimer</h2>
+          <p class="about-note__body">
+            All opinions and content on this site are my own and do not represent the views of my
+            employer.
+          </p>
+        </div>
+      </aside>
+    </div>
   </article>
 </BaseLayout>
