@@ -1,53 +1,22 @@
 ---
-import { formatDate } from '../../lib/dates';
-import { getBlogArchiveGroups, getBlogPosts } from '../../lib/blog';
 import { withBasePath } from '../../lib/paths';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getReadingTimeLabel } from '../../lib/reading-time';
-import EntryIcon from '../../components/ui/EntryIcon.astro';
 
-const posts = await getBlogPosts();
-const archiveGroups = getBlogArchiveGroups(posts);
-const iconNames = ['spark', 'structure', 'book', 'note'] as const;
+const blogPath = withBasePath('/blog/');
 ---
 
-<BaseLayout title="Archive" description="Blog posts grouped by year." pageClass="page-archive">
-  <section class="page-heading page-heading--centered">
-    <h1 class="page-heading__title">Archive</h1>
-    <p class="page-heading__copy">Posts grouped by year.</p>
-    <span class="section-rule" aria-hidden="true"></span>
-  </section>
-
-  <div class="archive-stack">
-    {
-      archiveGroups.map((group, groupIndex) => (
-        <section class="archive-panel surface">
-          <div class="archive-panel__heading">
-            <div>
-              <h2 class="archive-panel__year">{group.year}</h2>
-            </div>
-            <p class="archive-panel__count">
-              {group.posts.length} {group.posts.length === 1 ? 'post' : 'posts'}
-            </p>
-          </div>
-          <ul class="archive-panel__list">
-            {group.posts.map((post, index) => (
-              <li class="archive-entry">
-                <div class="archive-entry__icon">
-                  <EntryIcon name={iconNames[(groupIndex + index) % iconNames.length]} />
-                </div>
-                <a class="archive-entry__title" href={withBasePath(`/blog/${post.slug}/`)}>
-                  {post.data.title}
-                </a>
-                <p class="archive-entry__meta">
-                  {formatDate(post.data.pubDate)} • {getReadingTimeLabel(post.body)} read
-                </p>
-                <span class="archive-entry__chevron" aria-hidden="true">›</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
-    }
-  </div>
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0;url=${blogPath}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={blogPath} />
+    <title>Redirecting to blog</title>
+  </head>
+  <body>
+    <p>
+      Redirecting to the blog.
+      <a href={blogPath}>Continue</a>
+    </p>
+  </body>
+</html>

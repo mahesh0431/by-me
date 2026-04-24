@@ -8,8 +8,12 @@ const normalizePath = (value: string): string => (value !== '/' ? value.replace(
 const currentPath = normalizePath(Astro.url.pathname);
 const homePath = normalizePath(withBasePath('/'));
 const aboutPath = normalizePath(withBasePath('/about/'));
-const archivePath = normalizePath(withBasePath('/blog/archive/'));
-const isArchive = currentPath === archivePath;
+const blogPath = normalizePath(withBasePath('/blog/'));
+const legacyArchivePath = normalizePath(withBasePath('/blog/archive/'));
+const isBlog =
+  currentPath === blogPath ||
+  currentPath === legacyArchivePath ||
+  currentPath.startsWith(`${blogPath}/`);
 ---
 
 <header class="site-header">
@@ -22,7 +26,7 @@ const isArchive = currentPath === archivePath;
       <nav class="site-nav" aria-label="Primary">
         <NavLink href="/" isActive={currentPath === homePath}>Home</NavLink>
         <NavLink href="/about/" isActive={currentPath === aboutPath}>About</NavLink>
-        <NavLink href="/blog/archive/" isActive={isArchive}>Archive</NavLink>
+        <NavLink href="/blog/" isActive={isBlog}>Blog</NavLink>
       </nav>
     </div>
 

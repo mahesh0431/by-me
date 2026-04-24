@@ -1,22 +1,71 @@
 ---
-import { withBasePath } from "../../lib/paths";
+import type { BlogSceneYearGroup } from '../../components/blog/blog-scene.types';
 
-const archivePath = withBasePath("/blog/archive/");
+import BlogScene from '../../components/blog/BlogScene.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import SpriteRunner from '../../components/ui/SpriteRunner.astro';
+import { getBlogArchiveGroups, getBlogPosts } from '../../lib/blog';
+import { formatDate } from '../../lib/dates';
+import { withBasePath } from '../../lib/paths';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getBlogPosts();
+const archiveGroups = getBlogArchiveGroups(posts);
+
+const sceneGroups = archiveGroups.map(({ year, posts }) => ({
+  year,
+  posts: posts.map((post) => ({
+    slug: post.slug,
+    url: withBasePath(`/blog/${post.slug}/`),
+    title: post.data.title,
+    description: post.data.description,
+    pubDateIso: post.data.pubDate.toISOString(),
+    pubDateLabel: formatDate(post.data.pubDate),
+    updatedDateIso: post.data.updatedDate?.toISOString(),
+    updatedDateLabel: post.data.updatedDate ? formatDate(post.data.updatedDate) : undefined,
+    tags: post.data.tags ?? [],
+  })),
+})) satisfies BlogSceneYearGroup[];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="refresh" content={`0;url=${archivePath}`} />
-    <meta name="robots" content="noindex" />
-    <link rel="canonical" href={archivePath} />
-    <title>Redirecting to archive</title>
-  </head>
-  <body>
-    <p>
-      Redirecting to the archive.
-      <a href={archivePath}>Continue</a>
-    </p>
-  </body>
-</html>
+<BaseLayout title="Blog" description="Blog posts grouped by year." pageClass="page-archive">
+  <section class="page-heading page-heading--centered">
+    <h1 class="page-heading__title">Blog</h1>
+    <p class="page-heading__copy">Posts grouped by year.</p>
+    <span class="section-rule" aria-hidden="true"></span>
+  </section>
+
+  <BlogScene groups={sceneGroups}>
+    {
+      archiveGroups.length > 0 ? (
+        <div class="archive-stack blog-year-groups">
+          {archiveGroups.map((group, groupIndex) => (
+            <section class="archive-panel surface blog-year-group">
+              <div class="archive-panel__heading">
+                <div>
+                  <h2 class="archive-panel__year blog-year-group__title">{group.year}</h2>
+                </div>
+                <p class="archive-panel__count">
+                  {group.posts.length} {group.posts.length === 1 ? 'post' : 'posts'}
+                </p>
+              </div>
+
+              <div class="archive-panel__posts">
+                {group.posts.map((post, postIndex) => (
+                  <PostCard post={post} index={groupIndex + postIndex} variant="home" />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <section class="content-card surface">
+          <h2 class="page-title">No posts yet</h2>
+          <p>New writing will show up here.</p>
+        </section>
+      )
+    }
+  </BlogScene>
+
+  {archiveGroups.length > 0 && <SpriteRunner />}
+</BaseLayout>

@@ -1,0 +1,22 @@
+---
+import type { BlogSceneYearGroup } from "./blog-scene.types";
+
+interface Props {
+  groups: BlogSceneYearGroup[];
+}
+
+const { groups } = Astro.props;
+const serializedGroups = JSON.stringify(groups);
+---
+
+<div class="blog-scene" data-blog-scene-root data-blog-scene-state="fallback">
+  <script is:inline type="application/json" data-blog-scene-data set:html={serializedGroups}></script>
+  <slot />
+</div>
+
+<script>
+  import { initBlogScenes } from "./blog-scene.client";
+
+  initBlogScenes();
+  document.addEventListener("astro:page-load", initBlogScenes);
+</script>
