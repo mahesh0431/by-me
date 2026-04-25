@@ -33,7 +33,13 @@ const recentPosts = (await getBlogPosts())
     <div class="home-hero__content">
       <h1 class="display-title">{profile.data.homeHeading}</h1>
       <span class="section-rule" aria-hidden="true"></span>
-      <p class="hero-copy">{profile.data.homeIntro}</p>
+      <p class="hero-copy">
+        {profile.data.homeIntro}
+        <a class="home-hero__link" href={withBasePath('/about/')}>
+          More about me
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </p>
     </div>
   </section>
 

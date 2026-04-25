@@ -264,6 +264,31 @@ function getLineHeight(element: HTMLElement): number {
   return Number.isFinite(fontSize) ? fontSize * 1.2 : 20;
 }
 
+function splitTextIntoGraphemes(text: string): string[] {
+  if ("Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter(document.documentElement.lang || undefined, {
+      granularity: "grapheme",
+    });
+    return Array.from(segmenter.segment(text), (segment) => segment.segment);
+  }
+
+  return Array.from(text);
+}
+
+function renderTextEffectLetters(fragmentElement: HTMLElement, text: string): void {
+  const textFragment = document.createDocumentFragment();
+
+  for (const [index, grapheme] of splitTextIntoGraphemes(text).entries()) {
+    const letterElement = document.createElement("span");
+    letterElement.className = "blog-scene-letter";
+    letterElement.dataset.blogSceneLetterIndex = String(index);
+    letterElement.textContent = grapheme;
+    textFragment.append(letterElement);
+  }
+
+  fragmentElement.replaceChildren(textFragment);
+}
+
 function getSpriteLayoutContext(state: BlogSceneState): SpriteLayoutContext | null {
   const spriteShape = state.spriteShape;
 
@@ -314,7 +339,11 @@ function rectsOverlap(left: DOMRect | TextRect, right: TextRect, margin = 0): bo
   );
 }
 
-function getBlockedIntervalForBand(context: SpriteLayoutContext, bandTop: number, bandBottom: number): TextInterval | null {
+function getBlockedIntervalForBand(
+  context: SpriteLayoutContext,
+  bandTop: number,
+  bandBottom: number,
+): TextInterval | null {
   if (bandBottom < context.boundsRect.top || bandTop > context.boundsRect.bottom) {
     return null;
   }
@@ -365,7 +394,11 @@ function getBlockedIntervalForBand(context: SpriteLayoutContext, bandTop: number
   return { left, right };
 }
 
-function carveTextSlots(base: TextInterval, blocked: TextInterval | null, minWidth: number): TextInterval[] {
+function carveTextSlots(
+  base: TextInterval,
+  blocked: TextInterval | null,
+  minWidth: number,
+): TextInterval[] {
   if (!blocked || blocked.right <= base.left || blocked.left >= base.right) {
     return [base];
   }
@@ -406,7 +439,9 @@ function layoutLines(
 
     const bandTop = boxRect.top + lineIndex * lineHeight;
     const bandBottom = bandTop + lineHeight;
-    const blockedInterval = spriteContext ? getBlockedIntervalForBand(spriteContext, bandTop, bandBottom) : null;
+    const blockedInterval = spriteContext
+      ? getBlockedIntervalForBand(spriteContext, bandTop, bandBottom)
+      : null;
     const slots = carveTextSlots(baseSlot, blockedInterval, minSlotWidth);
 
     if (slots.length === 0) {
@@ -538,14 +573,21 @@ function renderPreparedLines(
     for (const [fragmentIndex, lineFragment] of line.fragments.entries()) {
       const fragmentElement = document.createElement("span");
       fragmentElement.className = "blog-scene-line-fragment";
-      fragmentElement.textContent = lineFragment.text;
       fragmentElement.dataset.blogSceneLineFragmentIndex = String(fragmentIndex);
+      fragmentElement.dataset.blogSceneFragmentText = lineFragment.text;
       if (lineFragment.justifyWordSpacing !== null) {
         fragmentElement.dataset.blogSceneLineFragmentJustify = "true";
-        fragmentElement.style.setProperty("--blog-scene-fragment-word-spacing", `${lineFragment.justifyWordSpacing}px`);
+        fragmentElement.style.setProperty(
+          "--blog-scene-fragment-word-spacing",
+          `${lineFragment.justifyWordSpacing}px`,
+        );
       }
       fragmentElement.style.setProperty("--blog-scene-fragment-offset", `${lineFragment.offset}px`);
-      fragmentElement.style.setProperty("--blog-scene-fragment-width", `${lineFragment.renderWidth}px`);
+      fragmentElement.style.setProperty(
+        "--blog-scene-fragment-width",
+        `${lineFragment.renderWidth}px`,
+      );
+      renderTextEffectLetters(fragmentElement, lineFragment.text);
       lineElement.append(fragmentElement);
     }
 
@@ -566,7 +608,8 @@ function renderScene(state: BlogSceneState): void {
 
   for (const postState of state.postStates) {
     const shouldUseSpriteContext =
-      spriteContext !== null && rectsOverlap(postState.cardElement.getBoundingClientRect(), spriteContext.boundsRect, 80);
+      spriteContext !== null &&
+      rectsOverlap(postState.cardElement.getBoundingClientRect(), spriteContext.boundsRect, 80);
     const lineSpriteContext = shouldUseSpriteContext ? spriteContext : null;
     const titleExclusionCount = renderPreparedLines(
       postState.titleElement,
@@ -647,7 +690,9 @@ async function initializeSpriteShape(state: BlogSceneState): Promise<void> {
     request.runnerElement.dataset.spriteShapeFrame = String(request.frameIndex);
     request.runnerElement.dataset.spriteShapeSlices = String(hull.slices.length);
     request.runnerElement.dataset.spriteShapeSliceWidths = getSliceWidthSummary(hull);
-    state.root.dispatchEvent(new CustomEvent("blog-scene:sprite-shape-ready", { detail: spriteShape }));
+    state.root.dispatchEvent(
+      new CustomEvent("blog-scene:sprite-shape-ready", { detail: spriteShape }),
+    );
     bindSpriteMotionRendering(request.runnerElement);
     renderScene(state);
   } catch (error) {

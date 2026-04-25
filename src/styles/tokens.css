@@ -27,6 +27,8 @@
   --accent-soft: rgba(39, 106, 116, 0.12);
   --accent-glow: rgba(39, 106, 116, 0.18);
   --hero-glow: rgba(216, 209, 197, 0.36);
+  --ambient-cool: rgba(39, 106, 116, 0.08);
+  --ambient-warm: rgba(150, 97, 48, 0.07);
 
   --focus-color: #2c7f8a;
 
@@ -87,6 +89,8 @@
   --accent-soft: rgba(143, 195, 203, 0.12);
   --accent-glow: rgba(143, 195, 203, 0.2);
   --hero-glow: rgba(118, 128, 140, 0.15);
+  --ambient-cool: rgba(143, 195, 203, 0.08);
+  --ambient-warm: rgba(228, 183, 119, 0.06);
 
   --focus-color: #a2dce2;
 

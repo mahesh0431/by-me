@@ -2,15 +2,26 @@
 import { blogSpriteConfig } from "../../lib/sprite-config";
 import { withBasePath } from "../../lib/paths";
 
+const frames = blogSpriteConfig.frames.map((frame) => ({
+  holdMs: frame.holdMs,
+  src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
+}));
+const walkFrames = blogSpriteConfig.walkFrames.map((frame) => ({
+  holdMs: frame.holdMs,
+  src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
+}));
+const frameImages = [
+  ...frames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "default" as const })),
+  ...walkFrames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "walk" as const })),
+];
 const spritePayload = {
   imageSize: blogSpriteConfig.imageSize,
+  game: blogSpriteConfig.game,
   motion: blogSpriteConfig.motion,
   scale: blogSpriteConfig.scale,
   shape: blogSpriteConfig.shape,
-  frames: blogSpriteConfig.frames.map((frame) => ({
-    holdMs: frame.holdMs,
-    src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
-  })),
+  frames,
+  walkFrames,
   phases: blogSpriteConfig.phases,
 };
 ---
@@ -18,513 +29,42 @@ const spritePayload = {
 <button
   type="button"
   class="sprite-overlay"
-  aria-label="Play sprite animation"
+  aria-label="Start Luffy Mini Game. Use Up, Down, Left, and Right arrow keys to play."
   data-sprite-runner
+  data-facing="left"
   data-state="idle"
   data-sprite-config={JSON.stringify(spritePayload)}
   style={`--sprite-scale: ${spritePayload.scale};`}
 >
-  <img
-    src={spritePayload.frames[0]?.src}
-    alt=""
-    class="sprite-overlay__image"
-    width={spritePayload.imageSize}
-    height={spritePayload.imageSize}
-    loading="eager"
-    decoding="async"
-    data-sprite-image
-  />
+  <span class="sprite-overlay__prompt" aria-hidden="true">
+    <span class="sprite-overlay__prompt-title">Start Luffy Mini Game</span>
+    <span class="sprite-overlay__prompt-hint">Use Up, Down, Left, Right</span>
+  </span>
+  <span class="sprite-overlay__stage" aria-hidden="true">
+    {
+      frameImages.map((frame) => (
+        <img
+          src={frame.src}
+          alt=""
+          class="sprite-overlay__image"
+          width={spritePayload.imageSize}
+          height={spritePayload.imageSize}
+          loading="eager"
+          decoding="async"
+          data-sprite-frame-active={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : "false"}
+          data-sprite-frame-image
+          data-sprite-frame-index={frame.frameIndex}
+          data-sprite-frame-set={frame.frameSet}
+          data-sprite-image={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : undefined}
+        />
+      ))
+    }
+  </span>
 </button>
 
-<script is:inline>
-  const initSpriteRunners = () => {
-    const spriteRunners = document.querySelectorAll("[data-sprite-runner]");
-
-    for (const runner of spriteRunners) {
-      if (!(runner instanceof HTMLButtonElement) || runner.dataset.spriteReady === "true") {
-        continue;
-      }
-
-      const image = runner.querySelector("[data-sprite-image]");
-      const spriteConfigValue = runner.dataset.spriteConfig;
-
-      if (!(image instanceof HTMLImageElement) || !spriteConfigValue) {
-        continue;
-      }
-
-      let spriteConfig;
-
-      try {
-        spriteConfig = JSON.parse(spriteConfigValue);
-      } catch {
-        continue;
-      }
-
-      const frames = Array.isArray(spriteConfig?.frames) ? spriteConfig.frames : [];
-      const phases = Array.isArray(spriteConfig?.phases) ? spriteConfig.phases : [];
-      const motion = normalizeMotionConfig(spriteConfig?.motion);
-
-      if (
-        frames.length === 0 ||
-        frames.some(
-          (frame) =>
-            typeof frame?.src !== "string" ||
-            !frame.src ||
-            !Number.isFinite(Number(frame?.holdMs)) ||
-            Number(frame.holdMs) < 0
-        ) ||
-        phases.length === 0
-      ) {
-        continue;
-      }
-
-      const normalizedPhases = phases
-        .map((phase) => {
-          if (
-            !phase ||
-            !Array.isArray(phase.frameIndexes) ||
-            phase.frameIndexes.length === 0 ||
-            !Array.isArray(phase.holdMs) ||
-            phase.holdMs.length === 0
-          ) {
-            return null;
-          }
-
-          const frameIndexes = phase.frameIndexes.filter(
-            (frameIndex) => Number.isInteger(frameIndex) && frameIndex >= 0 && frameIndex < frames.length
-          );
-          const holdMs = phase.holdMs
-            .map((value) => Number(value))
-            .filter((value) => Number.isFinite(value) && value >= 0);
-          const repeat = phase.repeat === "infinite" ? "infinite" : Math.max(1, Math.floor(Number(phase.repeat ?? 1)));
-
-          if (frameIndexes.length === 0 || holdMs.length === 0) {
-            return null;
-          }
-
-          return { frameIndexes, holdMs, repeat };
-        })
-        .filter((phase) => phase !== null);
-
-      if (normalizedPhases.length === 0) {
-        continue;
-      }
-
-      runner.dataset.spriteReady = "true";
-
-      const timers = [];
-      let isRunning = false;
-      let isLooping = false;
-      let didStartMotion = false;
-      let motionFrameId = null;
-
-      const clearTimers = () => {
-        while (timers.length > 0) {
-          const timerId = timers.pop();
-
-          if (typeof timerId === "number") {
-            window.clearTimeout(timerId);
-          }
-        }
-      };
-
-      const showFrame = (index) => {
-        image.src = frames[index].src;
-      };
-
-      const scheduleTimeout = (callback, delay) => {
-        const timerId = window.setTimeout(callback, delay);
-        timers.push(timerId);
-        return timerId;
-      };
-
-      const getRestingTop = () => {
-        const style = window.getComputedStyle(runner);
-        const bottom = Number.parseFloat(style.bottom);
-        const height = runner.getBoundingClientRect().height;
-
-        return window.innerHeight - (Number.isFinite(bottom) ? bottom : 0) - height;
-      };
-
-      const clearMotionFrame = () => {
-        if (typeof motionFrameId === "number") {
-          window.cancelAnimationFrame(motionFrameId);
-          motionFrameId = null;
-        }
-      };
-
-      const setMotionPoint = (point, rotation = 0) => {
-        runner.style.setProperty("--sprite-motion-duration", "0ms");
-        runner.style.setProperty("--sprite-rotate", `${rotation.toFixed(2)}deg`);
-        runner.style.setProperty("--sprite-translate-x", `${Math.round(point.x)}px`);
-        runner.style.setProperty("--sprite-translate-y", `${Math.round(point.y)}px`);
-      };
-
-      const randomBetween = (min, max) => min + Math.random() * (max - min);
-
-      const randomInteger = (min, max) => Math.floor(randomBetween(min, max + 1));
-
-      const getTangentRotation = (point, nextPoint) => {
-        const dx = nextPoint.x - point.x;
-        const dy = nextPoint.y - point.y;
-
-        if (dx === 0 && dy === 0) {
-          return 0;
-        }
-
-        return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-      };
-
-      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-      const getShortestRotationDelta = (from, to) => {
-        const delta = ((to - from + 180) % 360) - 180;
-        return delta < -180 ? delta + 360 : delta;
-      };
-
-      const smoothRotation = (currentRotation, targetRotation, elapsedMs) => {
-        const maxStep = (motion.rotationMaxDegPerSecond * elapsedMs) / 1000;
-        const delta = getShortestRotationDelta(currentRotation, targetRotation);
-
-        return currentRotation + clamp(delta, -maxStep, maxStep);
-      };
-
-      const getMotionBounds = () => {
-        const restingTop = getRestingTop();
-        const runnerRect = runner.getBoundingClientRect();
-        const runnerWidth = runnerRect.width;
-        const runnerHeight = runnerRect.height;
-        const viewportCenter = window.innerWidth / 2;
-        const target = motion.targetSelector.length > 0 ? document.querySelector(motion.targetSelector) : null;
-        const targetRect = target instanceof HTMLElement ? target.getBoundingClientRect() : null;
-        const fallbackTop = window.innerHeight * motion.viewportFallbackRatio;
-        const targetTop = targetRect ? targetRect.top + motion.targetOffsetPx : fallbackTop;
-        const topLimit = Math.min(restingTop, Math.max(motion.topSafetyPx, targetTop));
-        const fallbackBottom = window.innerHeight - runnerHeight - 24;
-        const targetBottom = targetRect ? targetRect.bottom - runnerHeight * 0.35 : fallbackBottom;
-        const bottomLimit = Math.min(restingTop - runnerHeight * 0.25, fallbackBottom, targetBottom);
-        const safeBottom = Math.max(topLimit, bottomLimit);
-        const horizontalFallback = Math.min(180, Math.max(48, window.innerWidth * 0.24));
-        const targetLeft = targetRect ? targetRect.left : viewportCenter - horizontalFallback;
-        const targetRight = targetRect ? targetRect.right : viewportCenter + horizontalFallback;
-        const centerPadding = Math.min(runnerWidth * 0.55, 88);
-        let centerMin = Math.max(runnerWidth / 2, targetLeft + centerPadding);
-        let centerMax = Math.min(window.innerWidth - runnerWidth / 2, targetRight - centerPadding);
-
-        if (centerMin > centerMax) {
-          centerMin = viewportCenter - horizontalFallback;
-          centerMax = viewportCenter + horizontalFallback;
-        }
-
-        return {
-          restingTop,
-          runnerHeight,
-          runnerWidth,
-          viewportCenter,
-          xMax: centerMax - viewportCenter,
-          xMin: centerMin - viewportCenter,
-          yMax: Math.min(0, safeBottom - restingTop),
-          yMin: topLimit - restingTop,
-        };
-      };
-
-      const getSimpleUpPathPoints = () => {
-        const bounds = getMotionBounds();
-        const points = [{ x: 0, y: 0 }];
-        const exitY = -bounds.restingTop - bounds.runnerHeight - 48;
-        const horizontalRange = Math.min(Math.abs(bounds.xMin), Math.abs(bounds.xMax));
-        const drift = Math.max(56, horizontalRange * motion.horizontalDriftRatio);
-        const maxBendCount = Math.max(4, Math.min(6, motion.waypointCount));
-        const bendCount = randomInteger(4, maxBendCount);
-        const turnCount = randomInteger(1, Math.min(2, Math.max(1, bendCount - 3)));
-        const turnIndexes = new Set();
-        let direction = Math.random() > 0.5 ? 1 : -1;
-        let targetX = direction * randomBetween(drift * 0.65, drift);
-        let previousX = 0;
-
-        while (turnIndexes.size < turnCount) {
-          turnIndexes.add(randomInteger(2, bendCount - 1));
-        }
-
-        for (let index = 0; index < bendCount; index += 1) {
-          const progress = (index + 1) / (bendCount + 1);
-
-          if (turnIndexes.has(index)) {
-            direction *= -1;
-            targetX = direction * randomBetween(drift * 0.55, drift);
-          }
-
-          const approach = randomBetween(0.38, 0.58);
-          const noise = randomBetween(-drift * 0.08, drift * 0.08);
-          const x = previousX + (targetX - previousX) * approach + noise;
-
-          points.push({
-            x: clamp(x, bounds.xMin, bounds.xMax),
-            y: exitY * progress,
-          });
-          previousX = points[points.length - 1].x;
-        }
-
-        points.push({
-          x: clamp(previousX + randomBetween(-drift * 0.16, drift * 0.16), bounds.xMin, bounds.xMax),
-          y: exitY,
-        });
-        return points;
-      };
-
-      const getPathPoint = (points, progress) => {
-        const clamped = Math.min(Math.max(progress, 0), 1);
-        const segmentCount = points.length - 1;
-        const scaled = clamped * segmentCount;
-        const index = Math.min(Math.floor(scaled), segmentCount - 1);
-        const t = scaled - index;
-        const t2 = t * t;
-        const t3 = t2 * t;
-        const p0 = points[Math.max(0, index - 1)];
-        const p1 = points[index];
-        const p2 = points[index + 1];
-        const p3 = points[Math.min(points.length - 1, index + 2)];
-
-        return {
-          x:
-            0.5 *
-            (2 * p1.x +
-              (-p0.x + p2.x) * t +
-              (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-              (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-          y:
-            0.5 *
-            (2 * p1.y +
-              (-p0.y + p2.y) * t +
-              (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-              (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
-        };
-      };
-
-      const createPathSampler = (points) => {
-        const sampleCount = Math.max(80, points.length * 28);
-        const samples = [];
-        let previousPoint = getPathPoint(points, 0);
-        let totalDistance = 0;
-
-        samples.push({ distance: 0, progress: 0 });
-
-        for (let index = 1; index <= sampleCount; index += 1) {
-          const progress = index / sampleCount;
-          const point = getPathPoint(points, progress);
-          totalDistance += Math.hypot(point.x - previousPoint.x, point.y - previousPoint.y);
-          samples.push({ distance: totalDistance, progress });
-          previousPoint = point;
-        }
-
-        return { samples, totalDistance };
-      };
-
-      const getProgressAtDistance = (sampler, distance) => {
-        const targetDistance = clamp(distance, 0, sampler.totalDistance);
-        const samples = sampler.samples;
-
-        for (let index = 1; index < samples.length; index += 1) {
-          const current = samples[index];
-          const previous = samples[index - 1];
-
-          if (current.distance < targetDistance) {
-            continue;
-          }
-
-          const span = current.distance - previous.distance;
-          const amount = span === 0 ? 0 : (targetDistance - previous.distance) / span;
-
-          return previous.progress + (current.progress - previous.progress) * amount;
-        }
-
-        return 1;
-      };
-
-      const finishWanderMotion = () => {
-        clearTimers();
-        clearMotionFrame();
-        didStartMotion = false;
-        isRunning = false;
-        isLooping = false;
-        runner.dataset.state = "idle";
-        delete runner.dataset.motionState;
-        delete runner.dataset.motionPathState;
-        setMotionPoint({ x: 0, y: 0 });
-        showFrame(0);
-      };
-
-      const resetWanderMotion = () => {
-        clearMotionFrame();
-        didStartMotion = false;
-        delete runner.dataset.motionState;
-        delete runner.dataset.motionPathState;
-        setMotionPoint({ x: 0, y: 0 });
-      };
-
-      const startWanderMotion = () => {
-        if (!motion || didStartMotion) {
-          return;
-        }
-
-        didStartMotion = true;
-        runner.dataset.motionState = "moving";
-        runner.dataset.motionPathState = "simple-up-exit";
-
-        const pathPoints = getSimpleUpPathPoints();
-        const sampler = createPathSampler(pathPoints);
-        const startTime = window.performance.now();
-        let currentRotation = 0;
-        let lastFrameTime = startTime;
-
-        const tick = (now) => {
-          const elapsed = now - startTime;
-          const frameElapsed = Math.max(0, now - lastFrameTime);
-          lastFrameTime = now;
-          const distance = (elapsed / 1000) * motion.speedPxPerSecond;
-
-          if (distance <= sampler.totalDistance) {
-            const progress = getProgressAtDistance(sampler, distance);
-            const point = getPathPoint(pathPoints, progress);
-            const nextProgress = getProgressAtDistance(sampler, distance + 24);
-            const nextPoint = getPathPoint(pathPoints, nextProgress);
-            const targetRotation = getTangentRotation(point, nextPoint);
-
-            currentRotation = smoothRotation(currentRotation, targetRotation, frameElapsed);
-            setMotionPoint(point, currentRotation);
-            runner.dataset.motionState = "moving";
-            motionFrameId = window.requestAnimationFrame(tick);
-            return;
-          }
-
-          finishWanderMotion();
-        };
-
-        clearMotionFrame();
-        motionFrameId = window.requestAnimationFrame(tick);
-      };
-
-      const startLoopPhase = (phase) => {
-        isRunning = false;
-        isLooping = true;
-        runner.dataset.state = "looping";
-        startWanderMotion();
-
-        let framePointer = 0;
-
-        const tick = () => {
-          const frameIndex = phase.frameIndexes[framePointer];
-          const holdMs = Number(phase.holdMs[framePointer % phase.holdMs.length]);
-
-          showFrame(frameIndex);
-          framePointer = (framePointer + 1) % phase.frameIndexes.length;
-
-          scheduleTimeout(tick, Math.max(holdMs, 0));
-        };
-
-        tick();
-      };
-
-      const startPhase = (phaseIndex) => {
-        if (phaseIndex >= normalizedPhases.length) {
-          runner.dataset.state = "complete";
-          isRunning = false;
-          isLooping = false;
-          return;
-        }
-
-        const phase = normalizedPhases[phaseIndex];
-
-        if (phase.repeat === "infinite") {
-          startLoopPhase(phase);
-          return;
-        }
-
-        isRunning = true;
-        isLooping = false;
-        runner.dataset.state = "running";
-
-        const repeatCount = phase.repeat;
-        const frameIndexes = [];
-
-        for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
-          frameIndexes.push(...phase.frameIndexes);
-        }
-
-        let framePointer = 0;
-
-        const tick = () => {
-          const frameIndex = frameIndexes[framePointer];
-          const holdMs = Number(phase.holdMs[framePointer % phase.holdMs.length]);
-
-          showFrame(frameIndex);
-          framePointer += 1;
-
-          if (framePointer >= frameIndexes.length) {
-            scheduleTimeout(() => startPhase(phaseIndex + 1), Math.max(holdMs, 0));
-            return;
-          }
-
-          scheduleTimeout(tick, Math.max(holdMs, 0));
-        };
-
-        tick();
-      };
-
-      for (const frame of frames) {
-        const preloadImage = new Image();
-        preloadImage.src = frame.src;
-      }
-
-      window.addEventListener("resize", () => {
-        if (!isRunning && !isLooping) {
-          resetWanderMotion();
-        }
-      });
-
-      runner.addEventListener("click", () => {
-        if (isRunning || isLooping) {
-          return;
-        }
-
-        clearTimers();
-        resetWanderMotion();
-        startPhase(0);
-      });
-    }
-  };
-
-  const normalizeMotionConfig = (value) => {
-    if (!value || typeof value !== "object") {
-      return null;
-    }
-
-    const horizontalDriftRatio = Number(value.horizontalDriftRatio);
-    const rotationMaxDegPerSecond = Number(value.rotationMaxDegPerSecond);
-    const speedPxPerSecond = Number(value.speedPxPerSecond);
-    const targetOffsetPx = Number(value.targetOffsetPx);
-    const targetSelector = typeof value.targetSelector === "string" ? value.targetSelector : "";
-    const topSafetyPx = Number(value.topSafetyPx);
-    const viewportFallbackRatio = Number(value.viewportFallbackRatio);
-    const waypointCount = Number(value.waypointCount);
-
-    return {
-      horizontalDriftRatio:
-        Number.isFinite(horizontalDriftRatio) && horizontalDriftRatio >= 0 ? Math.min(horizontalDriftRatio, 0.6) : 0.2,
-      rotationMaxDegPerSecond:
-        Number.isFinite(rotationMaxDegPerSecond) && rotationMaxDegPerSecond >= 30 ? rotationMaxDegPerSecond : 140,
-      speedPxPerSecond: Number.isFinite(speedPxPerSecond) && speedPxPerSecond >= 20 ? speedPxPerSecond : 110,
-      targetOffsetPx: Number.isFinite(targetOffsetPx) ? targetOffsetPx : 0,
-      targetSelector,
-      topSafetyPx: Number.isFinite(topSafetyPx) && topSafetyPx >= 0 ? topSafetyPx : 88,
-      viewportFallbackRatio:
-        Number.isFinite(viewportFallbackRatio) && viewportFallbackRatio >= 0 && viewportFallbackRatio <= 1
-          ? viewportFallbackRatio
-          : 0.18,
-      waypointCount: Number.isFinite(waypointCount) && waypointCount >= 1 ? Math.min(16, Math.floor(waypointCount)) : 7,
-    };
-  };
-
-  initSpriteRunners();
-  document.addEventListener("astro:page-load", initSpriteRunners);
+<script>
+  import { initSpriteGame } from "./sprite-game.client";
+
+  initSpriteGame();
+  document.addEventListener("astro:page-load", initSpriteGame);
 </script>

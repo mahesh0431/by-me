@@ -17,7 +17,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top center, var(--hero-glow), transparent 48%),
+    radial-gradient(circle at 16% 8%, var(--ambient-warm), transparent 28rem),
+    radial-gradient(circle at 82% 12%, var(--ambient-cool), transparent 30rem),
+    radial-gradient(circle at top center, var(--hero-glow), transparent 44rem),
     linear-gradient(180deg, rgba(var(--surface-page-rgb), 0.98), rgba(var(--surface-page-rgb), 1));
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -70,9 +72,11 @@ img {
   --sprite-rotate: 0deg;
   --sprite-translate-x: 0px;
   --sprite-translate-y: 0px;
+  --sprite-game-x: 50vw;
+  --sprite-game-y: 70vh;
 
   position: fixed;
-  left: 50%;
+  right: clamp(0.75rem, 4vw, 3rem);
   bottom: clamp(0.75rem, 2.2vw, 1.25rem);
   width: clamp(
     calc(152px * var(--sprite-scale, 1)),
@@ -80,8 +84,7 @@ img {
     calc(232px * var(--sprite-scale, 1))
   );
   aspect-ratio: 1;
-  transform: translateX(calc(-50% + var(--sprite-translate-x))) translateY(var(--sprite-translate-y))
-    rotate(var(--sprite-rotate));
+  transform: translateX(var(--sprite-translate-x)) translateY(var(--sprite-translate-y)) rotate(var(--sprite-rotate));
   transform-origin: 50% 58%;
   padding: 0;
   border: 0;
@@ -90,21 +93,172 @@ img {
   user-select: none;
   cursor: pointer;
   z-index: 15;
+  touch-action: none;
   transition: transform var(--sprite-motion-duration) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+.sprite-overlay__prompt {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% - 0.25rem);
+  display: grid;
+  min-width: max-content;
+  transform: translateY(0);
+  gap: 0.08rem;
+  padding: 0.58rem 0.72rem 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(120deg, rgb(var(--surface-page-rgb) / 0.72), var(--surface-panel-strong)),
+    var(--surface-panel-strong);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+  text-align: left;
+  pointer-events: none;
+  animation: sprite-prompt-float 2.8s ease-in-out infinite;
+}
+
+.sprite-overlay__prompt::after {
+  position: absolute;
+  right: 1.1rem;
+  bottom: -0.34rem;
+  width: 0.64rem;
+  height: 0.64rem;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-panel-strong);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.sprite-overlay__prompt-hint {
+  color: var(--text-tertiary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.sprite-overlay__prompt-title {
+  background: linear-gradient(90deg, var(--accent-strong), var(--text-primary), var(--accent-strong));
+  background-size: 220% 100%;
+  background-clip: text;
+  color: transparent;
+  font-size: 0.9rem;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  animation: sprite-prompt-shine 2.6s ease-in-out infinite;
+}
+
+.sprite-overlay[data-game-state="playing"] .sprite-overlay__prompt,
+.sprite-overlay[data-game-state="paused"] .sprite-overlay__prompt {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(0.35rem) scale(0.96);
+  transition:
+    visibility 0ms linear 120ms,
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.sprite-overlay:focus {
+  outline: none;
+}
+
+.sprite-overlay:focus-visible .sprite-overlay__image {
+  filter: drop-shadow(0 0 0 rgb(37 99 235 / 0.45)) drop-shadow(0 10px 18px rgb(24 24 27 / 0.18));
+}
+
+.sprite-overlay[data-control-mode="game"] {
+  top: 0;
+  bottom: auto;
+  left: 0;
+  transform: translate3d(var(--sprite-game-x), var(--sprite-game-y), 0) rotate(var(--sprite-rotate));
+  cursor: grab;
+  transition: none;
+  will-change: transform;
+}
+
+.sprite-overlay[data-control-mode="game"][data-game-state="playing"] {
+  cursor: grabbing;
+}
+
+.sprite-overlay__stage {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 18px rgb(24 24 27 / 0.18));
+  transform-origin: 50% 50%;
+  transition: none;
+  user-select: none;
+}
+
 .sprite-overlay__image {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgb(24 24 27 / 0.18));
+  opacity: 0;
+  transform-origin: 50% 50%;
   user-select: none;
+}
+
+.sprite-overlay__image[data-sprite-frame-active="true"] {
+  opacity: 1;
+}
+
+.sprite-overlay[data-game-state="idle"] .sprite-overlay__stage {
+  animation: sprite-idle-hover 2.8s ease-in-out infinite;
+}
+
+.sprite-overlay[data-facing="left"] .sprite-overlay__stage {
+  transform: scaleX(-1);
 }
 
 .sprite-overlay[data-state="running"],
 .sprite-overlay[data-motion-state="moving"] {
   cursor: progress;
+}
+
+@keyframes sprite-prompt-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-0.28rem);
+  }
+}
+
+@keyframes sprite-idle-hover {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -0.38rem;
+  }
+}
+
+@keyframes sprite-prompt-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .skip-link {
@@ -136,7 +290,7 @@ img {
   z-index: 20;
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--divider);
-  background: linear-gradient(180deg, var(--surface-shell), rgba(var(--surface-page-rgb), 0.66));
+  background: linear-gradient(180deg, var(--surface-shell), rgba(var(--surface-page-rgb), 0.74));
 }
 
 .site-header__inner {
@@ -280,7 +434,9 @@ img {
       color-mix(in srgb, var(--surface-panel-strong) 58%, var(--surface-page) 42%),
       color-mix(in srgb, var(--surface-panel) 78%, var(--surface-page) 22%)
     );
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-panel-strong) 72%, transparent),
+    var(--shadow-sm);
 }
 
 .surface--hero {
@@ -391,7 +547,12 @@ img {
   padding: 0.9rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  background: var(--surface-panel);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-panel-strong) 46%, var(--surface-panel) 54%),
+      var(--surface-panel)
+    );
   box-shadow: var(--shadow-xs);
   transition:
     transform var(--transition-base),
@@ -403,7 +564,9 @@ img {
 .post-card:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
-  background: var(--surface-hover);
+  background:
+    radial-gradient(circle at 8% 20%, color-mix(in srgb, var(--accent-soft) 52%, transparent), transparent 8rem),
+    linear-gradient(180deg, var(--surface-hover), var(--surface-panel-strong));
   box-shadow: var(--shadow-sm);
 }
 
@@ -565,6 +728,44 @@ img {
   z-index: 1;
   max-width: min(100%, 38rem);
   padding-block: 0.35rem;
+}
+
+.home-hero__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  margin-left: 0.16rem;
+  padding-block: 0.12rem 0.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: color-mix(in srgb, var(--accent) 78%, var(--text-secondary));
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-base);
+}
+
+.home-hero__link:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+  color: var(--accent-strong);
+}
+
+.home-hero__link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 46%, transparent);
+  outline-offset: 0.28rem;
+}
+
+.home-hero__link span {
+  transition: transform var(--transition-fast);
+}
+
+.home-hero__link:hover span {
+  transform: translateX(2px);
 }
 
 .home-hero__art {
@@ -918,8 +1119,64 @@ pre code,
   white-space: pre;
 }
 
+.blog-scene-letter {
+  display: inline-block;
+  min-width: 0.03em;
+  transform-origin: 50% 86%;
+  transition:
+    translate 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    rotate 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    text-shadow 120ms ease;
+  white-space: pre;
+  will-change: translate, rotate, transform;
+}
+
+.blog-scene-letter[data-sprite-text-pressure="true"],
+.blog-year-group__title[data-sprite-text-pressure="true"],
+.archive-panel__count[data-sprite-text-pressure="true"],
+.post-meta [data-sprite-text-pressure="true"],
+.post-tags [data-sprite-text-pressure="true"],
+.page-heading [data-sprite-text-pressure="true"] {
+  translate: 0 var(--sprite-text-pressure-y, 0px);
+  rotate: var(--sprite-text-pressure-rotate, 0deg);
+  text-shadow: 0 calc(var(--sprite-text-pressure-strength, 0) * 8px) 13px var(--accent-glow);
+}
+
+.blog-scene-letter[data-sprite-text-ripple="true"],
+.blog-year-group__title[data-sprite-text-ripple="true"],
+.archive-panel__count[data-sprite-text-ripple="true"],
+.post-meta [data-sprite-text-ripple="true"],
+.post-tags [data-sprite-text-ripple="true"],
+.page-heading [data-sprite-text-ripple="true"] {
+  animation: sprite-text-ripple 680ms cubic-bezier(0.18, 0.9, 0.2, 1) var(--sprite-ripple-delay, 0ms) both;
+}
+
 .blog-scene-line--spacer {
   visibility: hidden;
+}
+
+@keyframes sprite-text-ripple {
+  0% {
+    transform: translateY(0) rotate(0deg) scaleY(1);
+  }
+
+  24% {
+    transform: translateY(calc(var(--sprite-ripple-y, 4px) * -0.72)) rotate(calc(var(--sprite-ripple-rotate, 0deg) * -0.6))
+      scaleY(1.055);
+  }
+
+  55% {
+    transform: translateY(var(--sprite-ripple-y, 4px)) rotate(var(--sprite-ripple-rotate, 0deg)) scaleY(0.93);
+  }
+
+  78% {
+    transform: translateY(calc(var(--sprite-ripple-y, 4px) * -0.22)) rotate(calc(var(--sprite-ripple-rotate, 0deg) * -0.24))
+      scaleY(1.02);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scaleY(1);
+  }
 }
 
 .archive-panel__heading {
@@ -958,10 +1215,11 @@ pre code,
 }
 
 .archive-panel__posts .post-card {
-  padding: 0.85rem 0;
+  margin-inline: -0.45rem;
+  padding: 0.85rem 0.45rem;
   border: 0;
   border-bottom: 1px solid var(--divider);
-  border-radius: 0;
+  border-radius: var(--radius-md);
   background: transparent;
   box-shadow: none;
 }
@@ -969,7 +1227,7 @@ pre code,
 .archive-panel__posts .post-card:hover {
   transform: none;
   border-color: var(--divider);
-  background: transparent;
+  background: color-mix(in srgb, var(--surface-hover) 64%, transparent);
   box-shadow: none;
 }
 
