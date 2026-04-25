@@ -4,7 +4,7 @@ import type { BlogSceneYearGroup } from '../../components/blog/blog-scene.types'
 import BlogScene from '../../components/blog/BlogScene.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import SpriteRunner from '../../components/ui/SpriteRunner.astro';
-import { getBlogArchiveGroups, getBlogPosts } from '../../lib/blog';
+import { getBlogArchiveGroups, getBlogPosts, getPostRouteSlug } from '../../lib/blog';
 import { formatDate } from '../../lib/dates';
 import { withBasePath } from '../../lib/paths';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -15,14 +15,14 @@ const archiveGroups = getBlogArchiveGroups(posts);
 const sceneGroups = archiveGroups.map(({ year, posts }) => ({
   year,
   posts: posts.map((post) => ({
-    slug: post.slug,
-    url: withBasePath(`/blog/${post.slug}/`),
+    slug: getPostRouteSlug(post),
+    url: withBasePath(`/blog/${getPostRouteSlug(post)}/`),
     title: post.data.title,
-    description: post.data.description,
-    pubDateIso: post.data.pubDate.toISOString(),
-    pubDateLabel: formatDate(post.data.pubDate),
-    updatedDateIso: post.data.updatedDate?.toISOString(),
-    updatedDateLabel: post.data.updatedDate ? formatDate(post.data.updatedDate) : undefined,
+    description: post.data.summary,
+    createdIso: post.data.created.toISOString(),
+    createdLabel: formatDate(post.data.created),
+    updatedIso: post.data.updated?.toISOString(),
+    updatedLabel: post.data.updated ? formatDate(post.data.updated) : undefined,
     tags: post.data.tags ?? [],
   })),
 })) satisfies BlogSceneYearGroup[];

@@ -23,6 +23,9 @@ export default defineConfig({
   },
 
   vite: {
+    optimizeDeps: {
+      exclude: ["@chenglou/pretext"],
+    },
     plugins: [tailwindcss()],
   },
 });

@@ -14,7 +14,7 @@ export interface BlogPostLike {
   id?: string;
   slug?: string;
   data: {
-    pubDate: Date;
+    created: Date;
     draft?: boolean;
   };
 }

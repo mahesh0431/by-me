@@ -1,12 +1,12 @@
 export interface BlogScenePost {
+  createdIso: string;
+  createdLabel: string;
   description: string;
-  pubDateIso: string;
-  pubDateLabel: string;
   slug: string;
   tags: string[];
   title: string;
-  updatedDateIso?: string;
-  updatedDateLabel?: string;
+  updatedIso?: string;
+  updatedLabel?: string;
   url: string;
 }
 

@@ -13,14 +13,14 @@ type HasPubDate = {
   slug?: string;
   id?: string;
   data: {
-    pubDate: Date;
+    created: Date;
   };
 };
 
 type HasPostData = {
   data: {
     draft?: boolean;
-    pubDate: Date;
+    created: Date;
   };
 };
 
@@ -30,7 +30,7 @@ export function isPublishedPost<T extends HasDraft>(post: T): boolean {
 
 export function sortPostsNewestFirst<T extends HasPubDate>(posts: T[]): T[] {
   return [...posts].sort((left, right) => {
-    const dateDiff = right.data.pubDate.getTime() - left.data.pubDate.getTime();
+    const dateDiff = right.data.created.getTime() - left.data.created.getTime();
     if (dateDiff !== 0) {
       return dateDiff;
     }
@@ -51,7 +51,7 @@ export function groupPostsByYear<T extends HasPubDate>(
   const grouped = new Map<number, T[]>();
 
   for (const post of sortPostsNewestFirst(posts)) {
-    const year = getYearFromDate(post.data.pubDate);
+    const year = getYearFromDate(post.data.created);
     const bucket = grouped.get(year) ?? [];
     bucket.push(post);
     grouped.set(year, bucket);
@@ -65,6 +65,9 @@ export function groupPostsByYear<T extends HasPubDate>(
 export async function getPublishedBlogPosts(): Promise<BlogEntry[]> {
   const { getCollection } = await import("astro:content");
   const posts = await getCollection("blog");
+  for (const post of posts) {
+    getPostRouteSlug(post);
+  }
   return filterAndSortPublishedPosts(posts);
 }
 
@@ -80,4 +83,29 @@ export function getBlogArchiveGroups(
 
 export async function getBlogArchiveByYear(): Promise<Array<{ year: number; posts: BlogEntry[] }>> {
   return groupPostsByYear(await getPublishedBlogPosts());
+}
+
+function getSlugFromId(id: string): string {
+  const normalizedId = id.replaceAll("\\", "/");
+  const parts = normalizedId.split("/");
+  const fileName = parts.at(-1) ?? normalizedId;
+
+  if (fileName === "index.md" || fileName === "index.mdx") {
+    return parts.at(-2) ?? "";
+  }
+
+  return fileName.replace(/\.(md|mdx)$/, "");
+}
+
+export function getPostRouteSlug(post: BlogEntry): string {
+  const folderSlug = getSlugFromId(post.id);
+  const frontmatterSlug = post.data.slug;
+
+  if (frontmatterSlug && frontmatterSlug !== folderSlug) {
+    throw new Error(
+      `Blog post slug mismatch: frontmatter slug "${frontmatterSlug}" must match folder slug "${folderSlug}" in ${post.id}.`,
+    );
+  }
+
+  return folderSlug;
 }

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 
+import { getPostRouteSlug } from '../../lib/blog';
 import { withBasePath } from '../../lib/paths';
 import { getReadingTimeLabel } from '../../lib/reading-time';
 import EntryIcon from '../ui/EntryIcon.astro';
@@ -13,7 +14,7 @@ interface Props {
 }
 
 const { post, index = 0, variant = 'compact' } = Astro.props;
-const postUrl = withBasePath(`/blog/${post.slug}/`);
+const postUrl = withBasePath(`/blog/${getPostRouteSlug(post)}/`);
 const iconNames = ['spark', 'structure', 'book', 'note'] as const;
 const iconName = iconNames[index % iconNames.length];
 const readingTime = getReadingTimeLabel(post.body);
@@ -29,12 +30,12 @@ const showTags = variant === 'featured';
     <h2 class="post-card__title">
       <a class="post-card__link" href={postUrl}>{post.data.title}</a>
     </h2>
-    {showDescription && <p class="post-card__description">{post.data.description}</p>}
+    {showDescription && <p class="post-card__description">{post.data.summary}</p>}
     {
       showTags && (
         <PostMeta
-          pubDate={post.data.pubDate}
-          updatedDate={post.data.updatedDate}
+          created={post.data.created}
+          updated={post.data.updated}
           tags={post.data.tags}
           readingTime={readingTime}
         />
@@ -43,8 +44,8 @@ const showTags = variant === 'featured';
   </div>
   <div class="post-card__aside">
     <PostMeta
-      pubDate={post.data.pubDate}
-      updatedDate={post.data.updatedDate}
+      created={post.data.created}
+      updated={post.data.updated}
       tags={post.data.tags}
       readingTime={readingTime}
       compact

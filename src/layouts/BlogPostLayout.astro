@@ -18,7 +18,7 @@ const readingTime = getReadingTimeLabel(post.body);
 
 <BaseLayout
   title={post.data.title}
-  description={post.data.description}
+  description={post.data.summary}
   ogImage={socialImage}
   ogType="article"
   pageClass="page-article"
@@ -28,11 +28,11 @@ const readingTime = getReadingTimeLabel(post.body);
     <div class="article-frame surface">
       <header class="article-hero">
         <h1 class="article-title">{post.data.title}</h1>
-        <p class="article-lead">{post.data.description}</p>
+        <p class="article-lead">{post.data.summary}</p>
         <span class="section-rule" aria-hidden="true"></span>
         <PostMeta
-          pubDate={post.data.pubDate}
-          updatedDate={post.data.updatedDate}
+          created={post.data.created}
+          updated={post.data.updated}
           tags={post.data.tags}
           readingTime={readingTime}
         />

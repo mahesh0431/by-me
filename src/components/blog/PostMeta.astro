@@ -2,8 +2,8 @@
 import { formatDate } from '../../lib/dates';
 
 interface Props {
-  pubDate: Date;
-  updatedDate?: Date;
+  created: Date;
+  updated?: Date;
   tags?: string[];
   readingTime?: string;
   compact?: boolean;
@@ -11,20 +11,22 @@ interface Props {
 }
 
 const {
-  pubDate,
-  updatedDate,
+  created,
+  updated,
   tags = [],
   readingTime,
   compact = false,
   showTags = true,
 } = Astro.props;
+
+const updatedLabel = updated && updated.getTime() !== created.getTime() ? formatDate(updated) : undefined;
 ---
 
 <div class:list={["post-meta-block", { "post-meta-block--compact": compact }]}>
   <p class="post-meta">
-    <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    <time datetime={created.toISOString()}>{formatDate(created)}</time>
     {readingTime && <span>{readingTime} read</span>}
-    {updatedDate && <span>Updated {formatDate(updatedDate)}</span>}
+    {updatedLabel && <span>Updated {updatedLabel}</span>}
   </p>
   {
     showTags && tags.length > 0 && (
