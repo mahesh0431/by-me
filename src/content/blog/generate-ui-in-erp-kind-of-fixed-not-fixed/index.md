@@ -33,7 +33,7 @@ The page started rendering in around two seconds and completed in maybe three or
 
 But still, that small wait gave me the same feeling I get when YouTube buffers.
 
-<video controls muted playsinline src="./images/codex-spark-browser.mp4">
+<video controls muted playsinline src="/blog/generate-ui-in-erp-kind-of-fixed-not-fixed/codex-spark-browser.mp4">
   Codex Spark browser experiment video.
 </video>
 
@@ -147,7 +147,7 @@ On click or interaction, it can generate the next image or next state on the fly
 
 That is even more lively than the normal "generate a component tree" idea.
 
-<video controls muted playsinline src="./images/flipbook-live.mp4">
+<video controls muted playsinline src="/blog/generate-ui-in-erp-kind-of-fixed-not-fixed/flipbook-live.mp4">
   Flipbook live demo video.
 </video>
 
