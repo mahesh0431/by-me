@@ -14,8 +14,8 @@
   --text-primary: #22252c;
   --text-secondary: #59616c;
   --text-tertiary: #838995;
-  --text-link: #1f262d;
-  --text-link-hover: #215f69;
+  --text-link: #1d77a6;
+  --text-link-hover: #155c80;
   --text-inverse: #f7f5f1;
 
   --border-color: rgba(34, 37, 44, 0.085);
@@ -76,8 +76,8 @@
   --text-primary: #f3efe9;
   --text-secondary: #b0b7c1;
   --text-tertiary: #858d99;
-  --text-link: #f3efe9;
-  --text-link-hover: #9ad3da;
+  --text-link: #8fd3ff;
+  --text-link-hover: #b9e6ff;
   --text-inverse: #16181b;
 
   --border-color: rgba(255, 255, 255, 0.08);

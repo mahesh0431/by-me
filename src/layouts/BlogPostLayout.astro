@@ -14,6 +14,11 @@ interface Props {
 const { post } = Astro.props;
 const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
 const readingTime = getReadingTimeLabel(post.body);
+const heroImageSrc = post.data.heroImage
+  ? /^https?:\/\//.test(post.data.heroImage)
+    ? post.data.heroImage
+    : withBasePath(post.data.heroImage)
+  : null;
 ---
 
 <BaseLayout
@@ -36,6 +41,18 @@ const readingTime = getReadingTimeLabel(post.body);
           tags={post.data.tags}
           readingTime={readingTime}
         />
+        {
+          heroImageSrc && (
+            <img
+              class="article-hero-media"
+              src={heroImageSrc}
+              alt={`${post.data.title} hero image`}
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+          )
+        }
       </header>
       <section class="article-content">
         <slot />

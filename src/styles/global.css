@@ -981,21 +981,36 @@ img {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1.45rem 1.85rem 1.3rem;
+  padding: clamp(1.15rem, 2.8vw, 2rem);
   border-bottom: 1px solid var(--divider);
 }
 
 .article-title {
-  max-width: 20ch;
-  font-size: 3rem;
+  max-width: 24ch;
+  font-size: clamp(2.35rem, 6vw, 4.15rem);
+  text-wrap: balance;
+}
+
+.article-lead {
+  max-width: 64ch;
+  color: color-mix(in srgb, var(--text-primary) 52%, var(--text-secondary));
+}
+
+.article-hero-media {
+  width: 100%;
+  margin-top: 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-sm);
 }
 
 .article-content {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 1.75rem 1.85rem 2.2rem;
-  color: var(--text-secondary);
+  padding: clamp(1.35rem, 3vw, 2.35rem) clamp(1.1rem, 3.2vw, 2.4rem) clamp(1.75rem, 4vw, 2.9rem);
+  color: color-mix(in srgb, var(--text-primary) 68%, var(--text-secondary));
   font-size: 1.04rem;
   line-height: 1.74;
 }
@@ -1008,13 +1023,20 @@ img {
   margin-bottom: 0;
 }
 
-.article-content :is(h2, h3, h4) {
+.article-content :is(h1, h2, h3, h4) {
+  max-width: none;
+  margin-inline: 0;
   margin-top: 1.8em;
   margin-bottom: 0.65em;
   color: var(--text-primary);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.15;
+}
+
+.article-content h1 {
+  font-size: clamp(2rem, 4.6vw, 3rem);
+  text-wrap: balance;
 }
 
 .article-content h2 {
@@ -1029,27 +1051,106 @@ img {
 .article-content ul,
 .article-content ol,
 .article-content pre,
-.article-content blockquote {
-  max-width: 76ch;
+.article-content blockquote,
+.article-content hr {
+  max-width: none;
   margin: 1em 0;
 }
 
-.article-content a,
+.article-content ul,
+.article-content ol {
+  padding-left: 1.4em;
+}
+
+.article-content ul {
+  list-style: disc;
+}
+
+.article-content ol {
+  list-style: decimal;
+}
+
+.article-content li + li {
+  margin-top: 0.45em;
+}
+
+.article-content a {
+  color: var(--text-link);
+  font-weight: 520;
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 65%, transparent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.article-content a:hover {
+  color: var(--text-link-hover);
+  text-decoration-color: currentColor;
+}
+
 .content-card a,
 .archive-entry__title {
   color: var(--text-primary);
 }
 
-.article-content a {
-  text-decoration-color: color-mix(in srgb, var(--accent) 65%, transparent);
-  text-underline-offset: 0.15em;
+.article-content blockquote {
+  padding: 1.05rem 1.15rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border-color));
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent-soft) 58%, var(--surface-panel)),
+      color-mix(in srgb, var(--surface-panel-strong) 78%, transparent)
+    );
+  color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-panel-strong) 65%, transparent);
 }
 
-.article-content blockquote {
-  margin-left: 0;
-  padding-left: 1.1rem;
-  border-left: 3px solid var(--accent);
-  color: var(--text-primary);
+.article-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.article-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.article-content blockquote :is(h1, h2, h3, h4) {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.article-content blockquote ul,
+.article-content blockquote ol {
+  max-width: none;
+}
+
+.article-content hr {
+  border: 0;
+  border-top: 1px solid var(--divider);
+}
+
+.article-content :is(img, video) {
+  width: 100%;
+  max-width: 100%;
+  margin: 1.35rem auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.article-content p:has(> img:only-child) {
+  max-width: 100%;
+  margin: 1.35rem 0;
+}
+
+.article-content p:has(> img:only-child) img {
+  margin: 0 auto;
 }
 
 .article-content pre,
