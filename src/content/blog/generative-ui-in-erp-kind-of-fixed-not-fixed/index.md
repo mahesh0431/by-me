@@ -171,7 +171,17 @@ But waiting for a UI to appear feels different. That wait is right in front of y
 
 So at this moment, it can still feel a bit gimmicky.
 
-But I also do not want to dismiss it.
+But I also do not want to dismiss it completely.
+
+Maybe the right place for Generative UI is not the final enterprise transaction screen, at least not yet.
+
+It may make more sense in places where the user is exploring something, analyzing data, comparing options, or quickly trying to understand what is happening. In those cases, waiting a few seconds may be acceptable if the system gives me a useful view which otherwise would need a developer, a deployed app, or some custom report.
+
+For example, if I want to inspect sales issues, supplier delays, process bottlenecks, or some messy operational data, maybe I do not want to wait for a team to design, build, deploy, and maintain a dedicated screen for every possible question.
+
+There, Generative UI can be interesting.
+
+Not as the main system of record UI, but as a temporary, contextual, analysis-first UI.
 
 Because if you look at the speed of progress, models are becoming faster and more intelligent with every iteration. Hardware, streaming experiences, and agentic systems are also changing.
 
