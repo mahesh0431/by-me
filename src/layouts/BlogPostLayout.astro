@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 
+import GiscusComments from "../components/blog/GiscusComments.astro";
 import PostMeta from "../components/blog/PostMeta.astro";
 import { withBasePath } from "../lib/paths";
 import { getProfile } from "../lib/profile";
@@ -68,6 +69,7 @@ const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString
       <section class="article-content">
         <slot />
       </section>
+      <GiscusComments />
     </div>
   </article>
 </BaseLayout>

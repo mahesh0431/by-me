@@ -1,0 +1,156 @@
+/*!
+ * giscus theme for maheshpalavalli.com.
+ * Based on giscus' Primer-compatible custom theme surface.
+ */
+
+main {
+  --color-prettylights-syntax-comment: #6f7782;
+  --color-prettylights-syntax-constant: #1d77a6;
+  --color-prettylights-syntax-entity: #276a74;
+  --color-prettylights-syntax-storage-modifier-import: #22252c;
+  --color-prettylights-syntax-entity-tag: #276a74;
+  --color-prettylights-syntax-keyword: #966130;
+  --color-prettylights-syntax-string: #1d545c;
+  --color-prettylights-syntax-variable: #966130;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #b42318;
+  --color-prettylights-syntax-invalid-illegal-text: #f7f3ec;
+  --color-prettylights-syntax-invalid-illegal-bg: #b42318;
+  --color-prettylights-syntax-carriage-return-text: #f7f3ec;
+  --color-prettylights-syntax-carriage-return-bg: #b42318;
+  --color-prettylights-syntax-string-regexp: #1d545c;
+  --color-prettylights-syntax-markup-list: #966130;
+  --color-prettylights-syntax-markup-heading: #276a74;
+  --color-prettylights-syntax-markup-italic: #22252c;
+  --color-prettylights-syntax-markup-bold: #22252c;
+  --color-prettylights-syntax-markup-deleted-text: #b42318;
+  --color-prettylights-syntax-markup-deleted-bg: #f7dad7;
+  --color-prettylights-syntax-markup-inserted-text: #1d545c;
+  --color-prettylights-syntax-markup-inserted-bg: #dcefeb;
+  --color-prettylights-syntax-markup-changed-text: #7a4d20;
+  --color-prettylights-syntax-markup-changed-bg: #f1dfc8;
+  --color-prettylights-syntax-markup-ignored-text: #59616c;
+  --color-prettylights-syntax-markup-ignored-bg: #ede7dd;
+  --color-prettylights-syntax-meta-diff-range: #276a74;
+  --color-prettylights-syntax-brackethighlighter-angle: #838995;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #838995;
+  --color-prettylights-syntax-constant-other-reference-link: #1d77a6;
+
+  --color-btn-text: #22252c;
+  --color-btn-bg: rgba(250, 246, 239, 0.86);
+  --color-btn-border: rgba(34, 37, 44, 0.1);
+  --color-btn-shadow: 0 0 transparent;
+  --color-btn-inset-shadow: inset 0 1px 0 rgba(251, 247, 240, 0.75);
+  --color-btn-hover-bg: rgba(252, 248, 241, 0.96);
+  --color-btn-hover-border: rgba(39, 106, 116, 0.22);
+  --color-btn-active-bg: rgba(237, 231, 221, 0.86);
+  --color-btn-active-border: rgba(39, 106, 116, 0.24);
+  --color-btn-selected-bg: rgba(237, 231, 221, 0.82);
+  --color-btn-primary-text: #f7f5f1;
+  --color-btn-primary-bg: #276a74;
+  --color-btn-primary-border: rgba(29, 84, 92, 0.32);
+  --color-btn-primary-shadow: 0 0 transparent;
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --color-btn-primary-hover-bg: #1d545c;
+  --color-btn-primary-hover-border: rgba(29, 84, 92, 0.42);
+  --color-btn-primary-selected-bg: #1d545c;
+  --color-btn-primary-selected-shadow: 0 0 transparent;
+  --color-btn-primary-disabled-text: rgba(247, 245, 241, 0.74);
+  --color-btn-primary-disabled-bg: rgba(39, 106, 116, 0.44);
+  --color-btn-primary-disabled-border: transparent;
+  --color-action-list-item-default-hover-bg: rgba(39, 106, 116, 0.08);
+  --color-segmented-control-bg: rgba(237, 231, 221, 0.58);
+  --color-segmented-control-button-bg: rgba(251, 247, 240, 0.9);
+  --color-segmented-control-button-selected-border: rgba(34, 37, 44, 0.14);
+
+  --color-fg-default: #22252c;
+  --color-fg-muted: #59616c;
+  --color-fg-subtle: #838995;
+  --color-canvas-default: #f7f3ec;
+  --color-canvas-overlay: rgba(251, 247, 240, 0.94);
+  --color-canvas-inset: rgba(237, 231, 221, 0.62);
+  --color-canvas-subtle: rgba(250, 246, 239, 0.7);
+  --color-border-default: rgba(34, 37, 44, 0.11);
+  --color-border-muted: rgba(34, 37, 44, 0.07);
+  --color-neutral-muted: rgba(237, 231, 221, 0.68);
+  --color-accent-fg: #1d77a6;
+  --color-accent-emphasis: #276a74;
+  --color-accent-muted: rgba(39, 106, 116, 0.26);
+  --color-accent-subtle: rgba(39, 106, 116, 0.1);
+  --color-success-fg: #276a74;
+  --color-attention-fg: #966130;
+  --color-attention-muted: rgba(150, 97, 48, 0.24);
+  --color-attention-subtle: rgba(150, 97, 48, 0.1);
+  --color-danger-fg: #b42318;
+  --color-danger-muted: rgba(180, 35, 24, 0.22);
+  --color-danger-subtle: rgba(180, 35, 24, 0.08);
+  --color-primer-shadow-inset: inset 0 1px 0 rgba(251, 247, 240, 0.78);
+  --color-scale-gray-1: #ede7dd;
+  --color-scale-blue-1: rgba(39, 106, 116, 0.14);
+
+  --color-social-reaction-bg-hover: var(--color-scale-gray-1);
+  --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-1);
+}
+
+body,
+.gsc-main {
+  background: #f7f3ec;
+  color: #22252c;
+  font-family: "Roboto Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.gsc-main {
+  font-size: 15px;
+}
+
+.gsc-header {
+  padding: 0 0 0.85rem;
+}
+
+.gsc-comments > .gsc-comment-box {
+  margin: 0 0 1rem;
+}
+
+.gsc-comment-box,
+.gsc-comment {
+  overflow: hidden;
+  border: 1px solid rgba(34, 37, 44, 0.1);
+  border-radius: 8px;
+  background: rgba(251, 247, 240, 0.68);
+  box-shadow: none;
+}
+
+.gsc-comment-box-tabs {
+  background: rgba(250, 246, 239, 0.72);
+}
+
+.gsc-comment-content,
+.gsc-comment-header {
+  background: transparent;
+}
+
+.gsc-comment-content {
+  padding-block: 0.7rem;
+}
+
+.gsc-comment-box-textarea {
+  min-height: 7rem;
+  border-radius: 6px;
+  background: rgba(251, 247, 240, 0.9);
+}
+
+.gsc-reactions,
+.gsc-reactions-count,
+.gsc-comment-reactions,
+.gsc-social-reaction-summary,
+.gsc-social-reaction-summary-item,
+.gsc-upvote-button {
+  display: none;
+}
+
+.gsc-reply-count {
+  color: #59616c;
+}
+
+.gsc-timeline {
+  gap: 0.9rem;
+}
