@@ -3,15 +3,23 @@ import PostCard from '../components/blog/PostCard.astro';
 import { withBasePath } from '../lib/paths';
 import { getBlogPosts } from '../lib/blog';
 import { getProfile } from '../lib/profile';
+import { createPersonJsonLd, createWebSiteJsonLd } from '../lib/structured-data';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const profile = await getProfile();
 const recentPosts = (await getBlogPosts())
   .filter((post) => !post.data.tags?.includes('archive'))
   .slice(0, 5);
+const pageDescription =
+  'Mahesh Palavalli is an AI Solutions Architect at SAP, writing about generative AI, SAP architecture, agentic systems, and enterprise technology.';
 ---
 
-<BaseLayout title="Home" description="Personal website and blog home page." pageClass="page-home">
+<BaseLayout
+  title={profile.data.name}
+  description={pageDescription}
+  structuredData={[createWebSiteJsonLd(), createPersonJsonLd(profile)]}
+  pageClass="page-home"
+>
   <section class="home-hero surface surface--hero">
     <div class="home-hero__art" aria-hidden="true">
       <span class="home-hero__beam home-hero__beam--one"></span>

@@ -7,10 +7,16 @@ import SpriteRunner from '../../components/ui/SpriteRunner.astro';
 import { getBlogArchiveGroups, getBlogPosts, getPostRouteSlug } from '../../lib/blog';
 import { formatDate } from '../../lib/dates';
 import { withBasePath } from '../../lib/paths';
+import { getProfile } from '../../lib/profile';
+import { createBlogJsonLd, createPersonJsonLd } from '../../lib/structured-data';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
+const profile = await getProfile();
 const posts = await getBlogPosts();
 const archiveGroups = getBlogArchiveGroups(posts);
+const pageDescription =
+  'Writing from Mahesh Palavalli on AI, SAP architecture, generative UI, agentic systems, and enterprise technology.';
+const structuredData = [createPersonJsonLd(profile), createBlogJsonLd('/blog/', pageDescription)];
 
 const sceneGroups = archiveGroups.map(({ year, posts }) => ({
   year,
@@ -28,7 +34,12 @@ const sceneGroups = archiveGroups.map(({ year, posts }) => ({
 })) satisfies BlogSceneYearGroup[];
 ---
 
-<BaseLayout title="Blog" description="Blog posts grouped by year." pageClass="page-archive">
+<BaseLayout
+  title="Blog"
+  description={pageDescription}
+  structuredData={structuredData}
+  pageClass="page-archive"
+>
   <section class="page-heading page-heading--centered">
     <h1 class="page-heading__title">Blog</h1>
     <p class="page-heading__copy">Posts grouped by year.</p>

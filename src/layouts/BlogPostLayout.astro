@@ -3,8 +3,10 @@ import type { CollectionEntry } from "astro:content";
 
 import PostMeta from "../components/blog/PostMeta.astro";
 import { withBasePath } from "../lib/paths";
+import { getProfile } from "../lib/profile";
 import { getReadingTimeLabel } from "../lib/reading-time";
 import { DEFAULT_OG_IMAGE } from "../lib/site";
+import { createBlogPostingJsonLd, createPersonJsonLd } from "../lib/structured-data";
 import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
@@ -12,20 +14,29 @@ interface Props {
 }
 
 const { post } = Astro.props;
+const profile = await getProfile();
 const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
+const pageTitle = post.data.seoTitle ?? post.data.title;
+const pageDescription = post.data.seoDescription ?? post.data.summary;
 const readingTime = getReadingTimeLabel(post.body);
 const heroImageSrc = post.data.heroImage
   ? /^https?:\/\//.test(post.data.heroImage)
     ? post.data.heroImage
     : withBasePath(post.data.heroImage)
   : null;
+const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString();
 ---
 
 <BaseLayout
-  title={post.data.title}
-  description={post.data.summary}
+  title={pageTitle}
+  description={pageDescription}
   ogImage={socialImage}
   ogType="article"
+  canonicalUrl={post.data.canonicalUrl}
+  articlePublishedTime={post.data.created.toISOString()}
+  articleModifiedTime={articleModifiedTime}
+  articleTags={post.data.tags}
+  structuredData={[createPersonJsonLd(profile), createBlogPostingJsonLd(post, profile)]}
   pageClass="page-article"
 >
   <article class="article-shell">

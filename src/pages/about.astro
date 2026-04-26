@@ -3,11 +3,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { LINKEDIN_URL, X_URL } from '../lib/site';
 import { withBasePath } from '../lib/paths';
 import { getProfile } from '../lib/profile';
+import { createPersonJsonLd, createProfilePageJsonLd } from '../lib/structured-data';
 import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
 import IconX from '../components/icons/IconX.astro';
 import EntryIcon from '../components/ui/EntryIcon.astro';
 
 const profile = await getProfile();
+const pageDescription = profile.data.aboutDescription;
+const structuredData = [
+  createPersonJsonLd(profile),
+  createProfilePageJsonLd(profile, '/about/', pageDescription),
+];
 const paragraphs = profile.body.trim().split(/\n\s*\n/);
 const sections = [
   { title: "Hey! I'm Mahesh.", icon: 'spark', body: paragraphs[0] },
@@ -16,7 +22,12 @@ const sections = [
 ] as const;
 ---
 
-<BaseLayout title="About" description={profile.data.aboutDescription} pageClass="page-about">
+<BaseLayout
+  title="About"
+  description={pageDescription}
+  structuredData={structuredData}
+  pageClass="page-about"
+>
   <article class="about-layout">
     <aside class="about-card surface">
       <img

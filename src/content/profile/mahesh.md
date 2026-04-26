@@ -2,7 +2,7 @@
 name: "Mahesh Palavalli"
 role: "AI Solutions Architect, Office of the CTO at SAP"
 avatar: "/images/mahesh.png"
-aboutDescription: "About Mahesh Palavalli, AI Solutions Architect in the Office of the CTO at SAP."
+aboutDescription: "About Mahesh Palavalli, AI Solutions Architect at SAP working across generative AI, enterprise architecture, agentic systems, and cloud."
 homeHeading: "Hi, I'm Mahesh"
 homeIntro: "AI Solutions Architect at SAP. I used to write quite a bit on SAP Community, and this space is my way of getting back to writing, learning, and sharing again. Mostly on tech, AI, architecture, and things I find interesting."
 ---
