@@ -18,26 +18,7 @@ const darkGiscusTheme = isLocalPreview
   data-giscus-dark-theme={darkGiscusTheme}
 >
   <h2 id="article-comments-title" class="article-comments__title">Comments</h2>
-  <div class="article-comments__frame">
-    <script
-      is:inline
-      src="https://giscus.app/client.js"
-      data-repo="mahesh0431/by-me"
-      data-repo-id="R_kgDORU4UvQ"
-      data-category="Announcements"
-      data-category-id="DIC_kwDORU4Uvc4C7uD-"
-      data-mapping="pathname"
-      data-strict="1"
-      data-reactions-enabled="0"
-      data-emit-metadata="0"
-      data-input-position="top"
-      data-theme={lightGiscusTheme}
-      data-lang="en"
-      data-loading="lazy"
-      crossorigin="anonymous"
-      async
-    ></script>
-  </div>
+  <div class="article-comments__frame" data-giscus-frame></div>
   <script is:inline>
     (() => {
       const roots = document.querySelectorAll("[data-giscus-comments-root]");
@@ -51,6 +32,39 @@ const darkGiscusTheme = isLocalPreview
         const lightTheme = root.dataset.giscusLightTheme ?? "light";
         const darkTheme = root.dataset.giscusDarkTheme ?? "dark";
         const getTheme = () => (document.documentElement.dataset.theme === "dark" ? darkTheme : lightTheme);
+
+        const createGiscusScript = () => {
+          const frame = root.querySelector("[data-giscus-frame]");
+
+          if (!(frame instanceof HTMLElement) || frame.dataset.giscusScriptMounted === "true") {
+            return;
+          }
+
+          frame.dataset.giscusScriptMounted = "true";
+          const script = document.createElement("script");
+          const attrs = {
+            src: "https://giscus.app/client.js",
+            "data-repo": "mahesh0431/by-me",
+            "data-repo-id": "R_kgDORU4UvQ",
+            "data-category": "Announcements",
+            "data-category-id": "DIC_kwDORU4Uvc4C7uD-",
+            "data-mapping": "pathname",
+            "data-strict": "1",
+            "data-reactions-enabled": "0",
+            "data-emit-metadata": "0",
+            "data-input-position": "top",
+            "data-theme": getTheme(),
+            "data-lang": "en",
+            "data-loading": "lazy",
+            crossorigin: "anonymous",
+          };
+
+          Object.entries(attrs).forEach(([name, value]) => {
+            script.setAttribute(name, value);
+          });
+          script.async = true;
+          frame.append(script);
+        };
 
         const sendTheme = () => {
           const iframe = root.querySelector("iframe.giscus-frame");
@@ -72,6 +86,12 @@ const darkGiscusTheme = isLocalPreview
           );
         };
 
+        const scheduleThemeSync = () => {
+          sendTheme();
+          window.setTimeout(sendTheme, 100);
+          window.setTimeout(sendTheme, 500);
+        };
+
         const bindIframe = () => {
           const iframe = root.querySelector("iframe.giscus-frame");
 
@@ -80,8 +100,8 @@ const darkGiscusTheme = isLocalPreview
           }
 
           iframe.dataset.giscusThemeListener = "true";
-          iframe.addEventListener("load", sendTheme);
-          sendTheme();
+          iframe.addEventListener("load", scheduleThemeSync);
+          scheduleThemeSync();
         };
 
         const rootObserver = new MutationObserver(() => {
@@ -90,13 +110,14 @@ const darkGiscusTheme = isLocalPreview
         rootObserver.observe(root, { childList: true, subtree: true });
 
         const themeObserver = new MutationObserver(() => {
-          sendTheme();
+          scheduleThemeSync();
         });
         themeObserver.observe(document.documentElement, {
           attributeFilter: ["data-theme"],
           attributes: true,
         });
 
+        createGiscusScript();
         bindIframe();
       });
     })();
