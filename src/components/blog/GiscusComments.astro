@@ -2,12 +2,21 @@
 import { SITE_ORIGIN } from "../../lib/site";
 
 const isLocalPreview = Astro.url.hostname === "localhost" || Astro.url.hostname === "127.0.0.1";
-const giscusTheme = isLocalPreview
+const lightGiscusTheme = isLocalPreview
   ? "light"
   : new URL("/giscus-theme.css?v=20260426", SITE_ORIGIN).toString();
+const darkGiscusTheme = isLocalPreview
+  ? "dark"
+  : new URL("/giscus-theme-dark.css?v=20260426", SITE_ORIGIN).toString();
 ---
 
-<section class="article-comments" aria-labelledby="article-comments-title">
+<section
+  class="article-comments"
+  aria-labelledby="article-comments-title"
+  data-giscus-comments-root
+  data-giscus-light-theme={lightGiscusTheme}
+  data-giscus-dark-theme={darkGiscusTheme}
+>
   <h2 id="article-comments-title" class="article-comments__title">Comments</h2>
   <div class="article-comments__frame">
     <script
@@ -22,11 +31,74 @@ const giscusTheme = isLocalPreview
       data-reactions-enabled="0"
       data-emit-metadata="0"
       data-input-position="top"
-      data-theme={giscusTheme}
+      data-theme={lightGiscusTheme}
       data-lang="en"
       data-loading="lazy"
       crossorigin="anonymous"
       async
     ></script>
   </div>
+  <script is:inline>
+    (() => {
+      const roots = document.querySelectorAll("[data-giscus-comments-root]");
+
+      roots.forEach((root) => {
+        if (!(root instanceof HTMLElement) || root.dataset.giscusThemeBound === "true") {
+          return;
+        }
+
+        root.dataset.giscusThemeBound = "true";
+        const lightTheme = root.dataset.giscusLightTheme ?? "light";
+        const darkTheme = root.dataset.giscusDarkTheme ?? "dark";
+        const getTheme = () => (document.documentElement.dataset.theme === "dark" ? darkTheme : lightTheme);
+
+        const sendTheme = () => {
+          const iframe = root.querySelector("iframe.giscus-frame");
+
+          if (!(iframe instanceof HTMLIFrameElement) || !iframe.contentWindow) {
+            return;
+          }
+
+          iframe.contentWindow.postMessage(
+            {
+              giscus: {
+                setConfig: {
+                  reactionsEnabled: false,
+                  theme: getTheme(),
+                },
+              },
+            },
+            "https://giscus.app",
+          );
+        };
+
+        const bindIframe = () => {
+          const iframe = root.querySelector("iframe.giscus-frame");
+
+          if (!(iframe instanceof HTMLIFrameElement) || iframe.dataset.giscusThemeListener === "true") {
+            return;
+          }
+
+          iframe.dataset.giscusThemeListener = "true";
+          iframe.addEventListener("load", sendTheme);
+          sendTheme();
+        };
+
+        const rootObserver = new MutationObserver(() => {
+          bindIframe();
+        });
+        rootObserver.observe(root, { childList: true, subtree: true });
+
+        const themeObserver = new MutationObserver(() => {
+          sendTheme();
+        });
+        themeObserver.observe(document.documentElement, {
+          attributeFilter: ["data-theme"],
+          attributes: true,
+        });
+
+        bindIframe();
+      });
+    })();
+  </script>
 </section>

@@ -1,0 +1,156 @@
+/*!
+ * Dark giscus theme for maheshpalavalli.com.
+ * Based on giscus' Primer-compatible custom theme surface.
+ */
+
+main {
+  --color-prettylights-syntax-comment: #858d99;
+  --color-prettylights-syntax-constant: #8fd3ff;
+  --color-prettylights-syntax-entity: #b2e0e6;
+  --color-prettylights-syntax-storage-modifier-import: #f3efe9;
+  --color-prettylights-syntax-entity-tag: #8fc3cb;
+  --color-prettylights-syntax-keyword: #e4b777;
+  --color-prettylights-syntax-string: #b9e6ff;
+  --color-prettylights-syntax-variable: #f1cc94;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #ffb4ab;
+  --color-prettylights-syntax-invalid-illegal-text: #16181b;
+  --color-prettylights-syntax-invalid-illegal-bg: #ffb4ab;
+  --color-prettylights-syntax-carriage-return-text: #16181b;
+  --color-prettylights-syntax-carriage-return-bg: #ffb4ab;
+  --color-prettylights-syntax-string-regexp: #b9e6ff;
+  --color-prettylights-syntax-markup-list: #e4b777;
+  --color-prettylights-syntax-markup-heading: #8fc3cb;
+  --color-prettylights-syntax-markup-italic: #f3efe9;
+  --color-prettylights-syntax-markup-bold: #f3efe9;
+  --color-prettylights-syntax-markup-deleted-text: #ffb4ab;
+  --color-prettylights-syntax-markup-deleted-bg: rgba(255, 180, 171, 0.12);
+  --color-prettylights-syntax-markup-inserted-text: #8fc3cb;
+  --color-prettylights-syntax-markup-inserted-bg: rgba(143, 195, 203, 0.12);
+  --color-prettylights-syntax-markup-changed-text: #f1cc94;
+  --color-prettylights-syntax-markup-changed-bg: rgba(228, 183, 119, 0.12);
+  --color-prettylights-syntax-markup-ignored-text: #b0b7c1;
+  --color-prettylights-syntax-markup-ignored-bg: rgba(43, 47, 52, 0.92);
+  --color-prettylights-syntax-meta-diff-range: #b2e0e6;
+  --color-prettylights-syntax-brackethighlighter-angle: #858d99;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #858d99;
+  --color-prettylights-syntax-constant-other-reference-link: #8fd3ff;
+
+  --color-btn-text: #f3efe9;
+  --color-btn-bg: rgba(41, 46, 51, 0.92);
+  --color-btn-border: rgba(255, 255, 255, 0.1);
+  --color-btn-shadow: 0 0 transparent;
+  --color-btn-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --color-btn-hover-bg: rgba(50, 56, 62, 0.96);
+  --color-btn-hover-border: rgba(143, 195, 203, 0.24);
+  --color-btn-active-bg: rgba(43, 47, 52, 0.92);
+  --color-btn-active-border: rgba(143, 195, 203, 0.28);
+  --color-btn-selected-bg: rgba(43, 47, 52, 0.86);
+  --color-btn-primary-text: #16181b;
+  --color-btn-primary-bg: #8fc3cb;
+  --color-btn-primary-border: rgba(143, 195, 203, 0.38);
+  --color-btn-primary-shadow: 0 0 transparent;
+  --color-btn-primary-inset-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --color-btn-primary-hover-bg: #b2e0e6;
+  --color-btn-primary-hover-border: rgba(178, 224, 230, 0.46);
+  --color-btn-primary-selected-bg: #b2e0e6;
+  --color-btn-primary-selected-shadow: 0 0 transparent;
+  --color-btn-primary-disabled-text: rgba(22, 24, 27, 0.76);
+  --color-btn-primary-disabled-bg: rgba(143, 195, 203, 0.48);
+  --color-btn-primary-disabled-border: transparent;
+  --color-action-list-item-default-hover-bg: rgba(143, 195, 203, 0.08);
+  --color-segmented-control-bg: rgba(43, 47, 52, 0.66);
+  --color-segmented-control-button-bg: rgba(34, 37, 41, 0.92);
+  --color-segmented-control-button-selected-border: rgba(255, 255, 255, 0.14);
+
+  --color-fg-default: #f3efe9;
+  --color-fg-muted: #b0b7c1;
+  --color-fg-subtle: #858d99;
+  --color-canvas-default: #141618;
+  --color-canvas-overlay: rgba(34, 37, 41, 0.96);
+  --color-canvas-inset: rgba(43, 47, 52, 0.72);
+  --color-canvas-subtle: rgba(255, 255, 255, 0.035);
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-muted: rgba(255, 255, 255, 0.07);
+  --color-neutral-muted: rgba(43, 47, 52, 0.78);
+  --color-accent-fg: #8fd3ff;
+  --color-accent-emphasis: #8fc3cb;
+  --color-accent-muted: rgba(143, 195, 203, 0.28);
+  --color-accent-subtle: rgba(143, 195, 203, 0.1);
+  --color-success-fg: #8fc3cb;
+  --color-attention-fg: #e4b777;
+  --color-attention-muted: rgba(228, 183, 119, 0.24);
+  --color-attention-subtle: rgba(228, 183, 119, 0.1);
+  --color-danger-fg: #ffb4ab;
+  --color-danger-muted: rgba(255, 180, 171, 0.22);
+  --color-danger-subtle: rgba(255, 180, 171, 0.08);
+  --color-primer-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --color-scale-gray-1: rgba(43, 47, 52, 0.92);
+  --color-scale-blue-1: rgba(143, 195, 203, 0.14);
+
+  --color-social-reaction-bg-hover: var(--color-scale-gray-1);
+  --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-1);
+}
+
+body,
+.gsc-main {
+  background: #141618;
+  color: #f3efe9;
+  font-family: "Roboto Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.gsc-main {
+  font-size: 15px;
+}
+
+.gsc-header {
+  padding: 0 0 0.85rem;
+}
+
+.gsc-comments > .gsc-comment-box {
+  margin: 0 0 1rem;
+}
+
+.gsc-comment-box,
+.gsc-comment {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(34, 37, 41, 0.72);
+  box-shadow: none;
+}
+
+.gsc-comment-box-tabs {
+  background: rgba(30, 33, 37, 0.86);
+}
+
+.gsc-comment-content,
+.gsc-comment-header {
+  background: transparent;
+}
+
+.gsc-comment-content {
+  padding-block: 0.7rem;
+}
+
+.gsc-comment-box-textarea {
+  min-height: 7rem;
+  border-radius: 6px;
+  background: rgba(30, 33, 37, 0.92);
+}
+
+.gsc-reactions,
+.gsc-reactions-count,
+.gsc-comment-reactions,
+.gsc-social-reaction-summary,
+.gsc-social-reaction-summary-item,
+.gsc-upvote-button {
+  display: none;
+}
+
+.gsc-reply-count {
+  color: #b0b7c1;
+}
+
+.gsc-timeline {
+  gap: 0.9rem;
+}
