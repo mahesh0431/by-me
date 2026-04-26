@@ -264,31 +264,6 @@ function getLineHeight(element: HTMLElement): number {
   return Number.isFinite(fontSize) ? fontSize * 1.2 : 20;
 }
 
-function splitTextIntoGraphemes(text: string): string[] {
-  if ("Segmenter" in Intl) {
-    const segmenter = new Intl.Segmenter(document.documentElement.lang || undefined, {
-      granularity: "grapheme",
-    });
-    return Array.from(segmenter.segment(text), (segment) => segment.segment);
-  }
-
-  return Array.from(text);
-}
-
-function renderTextEffectLetters(fragmentElement: HTMLElement, text: string): void {
-  const textFragment = document.createDocumentFragment();
-
-  for (const [index, grapheme] of splitTextIntoGraphemes(text).entries()) {
-    const letterElement = document.createElement("span");
-    letterElement.className = "blog-scene-letter";
-    letterElement.dataset.blogSceneLetterIndex = String(index);
-    letterElement.textContent = grapheme;
-    textFragment.append(letterElement);
-  }
-
-  fragmentElement.replaceChildren(textFragment);
-}
-
 function getSpriteLayoutContext(state: BlogSceneState): SpriteLayoutContext | null {
   const spriteShape = state.spriteShape;
 
@@ -587,7 +562,7 @@ function renderPreparedLines(
         "--blog-scene-fragment-width",
         `${lineFragment.renderWidth}px`,
       );
-      renderTextEffectLetters(fragmentElement, lineFragment.text);
+      fragmentElement.textContent = lineFragment.text;
       lineElement.append(fragmentElement);
     }
 

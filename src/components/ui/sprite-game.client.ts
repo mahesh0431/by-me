@@ -272,6 +272,49 @@ function getTextEffectRoot(element: HTMLElement): HTMLElement {
   );
 }
 
+function splitTextIntoGraphemes(text: string): string[] {
+  if ("Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter(document.documentElement.lang || undefined, {
+      granularity: "grapheme",
+    });
+    return Array.from(segmenter.segment(text), (segment) => segment.segment);
+  }
+
+  return Array.from(text);
+}
+
+function ensureBlogSceneLetters(root: HTMLElement): HTMLElement[] {
+  const fragments = (
+    root.classList.contains("blog-scene-line-fragment")
+      ? [root]
+      : Array.from(root.querySelectorAll(".blog-scene-line-fragment"))
+  ).filter((element): element is HTMLElement => element instanceof HTMLElement);
+
+  for (const fragment of fragments) {
+    if (fragment.dataset.blogSceneLettersReady === "true") {
+      continue;
+    }
+
+    const text = fragment.dataset.blogSceneFragmentText ?? fragment.textContent ?? "";
+    const textFragment = document.createDocumentFragment();
+
+    for (const [index, grapheme] of splitTextIntoGraphemes(text).entries()) {
+      const letterElement = document.createElement("span");
+      letterElement.className = "blog-scene-letter";
+      letterElement.dataset.blogSceneLetterIndex = String(index);
+      letterElement.textContent = grapheme;
+      textFragment.append(letterElement);
+    }
+
+    fragment.replaceChildren(textFragment);
+    fragment.dataset.blogSceneLettersReady = "true";
+  }
+
+  return Array.from(root.querySelectorAll(".blog-scene-letter")).filter(
+    (element): element is HTMLElement => element instanceof HTMLElement,
+  );
+}
+
 function collectTextPlatforms(game: SpriteGameConfig): TextPlatform[] {
   const platforms: TextPlatform[] = [];
   const elements = Array.from(document.querySelectorAll(TEXT_PLATFORM_SELECTOR));
@@ -391,9 +434,13 @@ function getFrameKey(frameSetName: SpriteFrameSetName, frameIndex: number): stri
 
 function getTextEffectTargets(platform: TextPlatform): HTMLElement[] {
   const root = platform.effectRoot;
-  const letters = Array.from(root.querySelectorAll(".blog-scene-letter")).filter(
+  let letters = Array.from(root.querySelectorAll(".blog-scene-letter")).filter(
     (element): element is HTMLElement => element instanceof HTMLElement,
   );
+
+  if (letters.length === 0) {
+    letters = ensureBlogSceneLetters(root);
+  }
 
   if (letters.length > 0) {
     return letters;
@@ -407,9 +454,13 @@ function getTextEffectTargets(platform: TextPlatform): HTMLElement[] {
 }
 
 function getTextPressureTargets(platform: TextPlatform): HTMLElement[] {
-  const lineLetters = Array.from(
+  let lineLetters = Array.from(
     platform.lineElement.querySelectorAll(".blog-scene-letter"),
   ).filter((element): element is HTMLElement => element instanceof HTMLElement);
+
+  if (lineLetters.length === 0) {
+    lineLetters = ensureBlogSceneLetters(platform.lineElement);
+  }
 
   if (lineLetters.length > 0) {
     return lineLetters;
