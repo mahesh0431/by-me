@@ -67,6 +67,93 @@ img {
   padding: 1.85rem 0 3.5rem;
 }
 
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 60;
+  height: 3px;
+  pointer-events: none;
+}
+
+.scroll-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left center;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent-strong) 58%, transparent),
+      color-mix(in srgb, var(--text-link) 82%, var(--accent)),
+      color-mix(in srgb, var(--accent-strong) 72%, var(--text-link-hover))
+    );
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--accent-glow) 84%, transparent),
+    0 1px 0 color-mix(in srgb, var(--surface-panel-strong) 40%, transparent);
+  will-change: transform;
+}
+
+.scroll-to-top {
+  position: fixed;
+  right: clamp(0.9rem, 2.3vw, 1.65rem);
+  bottom: clamp(5.5rem, 10vw, 7.4rem);
+  z-index: 18;
+  display: inline-grid;
+  place-items: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 82%, transparent);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 18%, color-mix(in srgb, var(--surface-panel-strong) 94%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-panel-strong) 88%, var(--surface-page));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-panel-strong) 86%, transparent),
+    0 18px 38px color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--accent-strong);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 0.7rem, 0) scale(0.92);
+  transition:
+    visibility 0ms linear 180ms,
+    opacity var(--transition-base),
+    transform var(--transition-base),
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+:root[data-scroll-controls-scrolled="true"] .scroll-to-top {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition-delay: 0ms;
+}
+
+.scroll-to-top:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border-strong));
+  color: var(--text-link-hover);
+  transform: translate3d(0, -0.14rem, 0) scale(1.02);
+}
+
+:root[data-scroll-controls-scrolled="true"] .scroll-to-top:hover {
+  transform: translate3d(0, -0.14rem, 0) scale(1.02);
+}
+
+.scroll-to-top:active {
+  transform: translate3d(0, 0, 0) scale(0.98);
+}
+
+.scroll-to-top__icon {
+  width: 1.08rem;
+  height: 1.08rem;
+}
+
 .sprite-overlay {
   --sprite-motion-duration: 0ms;
   --sprite-rotate: 0deg;
@@ -1560,6 +1647,13 @@ pre code,
   .theme-toggle {
     width: 2.22rem;
     height: 2.22rem;
+  }
+
+  .scroll-to-top {
+    right: 0.72rem;
+    bottom: 4.85rem;
+    width: 2.55rem;
+    height: 2.55rem;
   }
 
   .sprite-overlay {

@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import Header from "../components/layout/Header.astro";
+import ScrollControls from "../components/ui/ScrollControls.astro";
 import { withBasePath } from "../lib/paths";
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from "../lib/site";
 import type { JsonLdObject } from "../lib/structured-data";
@@ -134,6 +135,7 @@ const structuredDataItems = Array.isArray(structuredData)
           <slot />
         </div>
       </main>
+      <ScrollControls />
     </div>
   </body>
 </html>

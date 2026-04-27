@@ -1,0 +1,75 @@
+<div class="scroll-progress" aria-hidden="true" data-scroll-progress>
+  <span class="scroll-progress__bar" data-scroll-progress-bar></span>
+</div>
+
+<button class="scroll-to-top" type="button" aria-label="Back to top" data-scroll-to-top>
+  <svg class="scroll-to-top__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5"></path>
+    <path d="m5 12 7-7 7 7"></path>
+  </svg>
+</button>
+
+<script is:inline>
+  (() => {
+    const controllerKey = 'scrollControlsBound';
+    const root = document.documentElement;
+    let frameId = 0;
+
+    const getScrollState = () => {
+      const scroller = document.scrollingElement || document.documentElement;
+      const maxScroll = Math.max(scroller.scrollHeight - window.innerHeight, 0);
+      const scrollTop = Math.max(scroller.scrollTop, 0);
+      const progress = maxScroll > 0 ? Math.min(scrollTop / maxScroll, 1) : 0;
+
+      return {
+        progress,
+        isScrolled: scrollTop > Math.min(360, Math.max(maxScroll * 0.12, 160)),
+      };
+    };
+
+    const render = () => {
+      frameId = 0;
+      const { progress, isScrolled } = getScrollState();
+      root.style.setProperty('--scroll-progress', progress.toFixed(4));
+      root.dataset.scrollControlsScrolled = String(isScrolled);
+    };
+
+    const scheduleRender = () => {
+      if (frameId !== 0) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(render);
+    };
+
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      });
+    };
+
+    const bindControls = () => {
+      const button = document.querySelector('[data-scroll-to-top]');
+
+      if (button && button.dataset.scrollToTopBound !== 'true') {
+        button.dataset.scrollToTopBound = 'true';
+        button.addEventListener('click', scrollToTop);
+      }
+
+      scheduleRender();
+    };
+
+    if (root.dataset[controllerKey] === 'true') {
+      bindControls();
+      return;
+    }
+
+    root.dataset[controllerKey] = 'true';
+    window.addEventListener('scroll', scheduleRender, { passive: true });
+    window.addEventListener('resize', scheduleRender);
+    document.addEventListener('astro:page-load', bindControls);
+    document.addEventListener('astro:after-swap', bindControls);
+    bindControls();
+  })();
+</script>
