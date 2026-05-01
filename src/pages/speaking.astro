@@ -2,12 +2,13 @@
 import EntryIcon from '../components/ui/EntryIcon.astro';
 import { formatDate } from '../lib/dates';
 import { getProfile } from '../lib/profile';
-import { getSpeakingEntries, getSpeakingRouteSlug } from '../lib/speaking';
+import { getSpeakingArchiveGroups, getSpeakingEntries, getSpeakingRouteSlug } from '../lib/speaking';
 import { createPersonJsonLd } from '../lib/structured-data';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const profile = await getProfile();
 const entries = await getSpeakingEntries();
+const archiveGroups = getSpeakingArchiveGroups(entries);
 const pageDescription =
   'Talks, workshops, and sessions by Mahesh Palavalli on AI, SAP, enterprise architecture, and building with emerging technology.';
 ---
@@ -18,44 +19,72 @@ const pageDescription =
   structuredData={[createPersonJsonLd(profile)]}
   pageClass="page-speaking"
 >
-  <section class="page-heading page-heading--centered speaking-heading">
-    <p class="page-heading__eyebrow">Talks, workshops, and sessions</p>
+  <section class="page-heading page-heading--centered">
     <h1 class="page-heading__title">Speaking</h1>
     <p class="page-heading__copy">
-      Places where I share work around AI, SAP, enterprise architecture, and building with new technology.
+      Talks, workshops, and sessions around AI, SAP, enterprise architecture, and building with new technology.
     </p>
     <span class="section-rule" aria-hidden="true"></span>
   </section>
 
   {
     entries.length > 0 ? (
-      <section class="speaking-list">
-        {entries.map((entry) => {
-          const slug = getSpeakingRouteSlug(entry);
-          return (
-            <article class="speaking-card surface" id={slug}>
-              <div class="speaking-card__icon">
-                <EntryIcon name="mic" />
+      <div class="archive-stack">
+        {archiveGroups.map((group) => (
+          <section class="archive-panel surface">
+            <div class="archive-panel__heading">
+              <div>
+                <h2 class="archive-panel__year">{group.year}</h2>
               </div>
-              <div class="speaking-card__body">
-                <div class="speaking-card__meta">
-                  <span>{entry.data.event}</span>
-                  <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
-                  {entry.data.location && <span>{entry.data.location}</span>}
-                </div>
-                <h2 class="speaking-card__title">{entry.data.title}</h2>
-                <p class="speaking-card__summary">{entry.data.summary}</p>
-                {entry.data.sourceUrl && (
-                  <a class="speaking-card__link" href={entry.data.sourceUrl} target="_blank" rel="noreferrer">
-                    Open source note
-                    <span aria-hidden="true">↗</span>
-                  </a>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </section>
+              <p class="archive-panel__count">
+                {group.posts.length} {group.posts.length === 1 ? 'session' : 'sessions'}
+              </p>
+            </div>
+
+            <div class="archive-panel__posts">
+              {group.posts.map((entry) => {
+                const slug = getSpeakingRouteSlug(entry);
+                const href = entry.data.sourceUrl ?? `#${slug}`;
+                return (
+                  <article class="post-card post-card--speaking" id={slug}>
+                    <div class="post-card__icon-wrap">
+                      <EntryIcon name="mic" />
+                    </div>
+                    <div class="post-card__body">
+                      <p class="post-card__eyebrow">
+                        <span>{entry.data.event}</span>
+                        <span aria-hidden="true">·</span>
+                        <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
+                        {entry.data.location && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span>{entry.data.location}</span>
+                          </>
+                        )}
+                      </p>
+                      <h2 class="post-card__title">
+                        <a
+                          class="post-card__link"
+                          href={href}
+                          target={entry.data.sourceUrl ? '_blank' : undefined}
+                          rel={entry.data.sourceUrl ? 'noreferrer' : undefined}
+                        >
+                          {entry.data.title}
+                        </a>
+                      </h2>
+                      <p class="post-card__description">{entry.data.summary}</p>
+                    </div>
+                    <div class="post-card__aside">
+                      <span class="post-card__type">Speaking</span>
+                      <span class="post-card__chevron" aria-hidden="true">›</span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </div>
     ) : (
       <section class="content-card surface">
         <h2 class="page-title">No speaking notes yet</h2>

@@ -15,6 +15,7 @@ interface Props {
 const { kind, title, summary, href, dateLabel, dateIso, meta, index = 0 } = Astro.props;
 const iconName = kind === "speaking" ? "mic" : (["spark", "structure", "book", "note"] as const)[index % 4];
 const label = kind === "speaking" ? "Speaking" : "Post";
+const isExternal = /^https?:\/\//.test(href);
 ---
 
 <article class:list={["recent-card", `recent-card--${kind}`]}>
@@ -22,15 +23,22 @@ const label = kind === "speaking" ? "Speaking" : "Post";
     <EntryIcon name={iconName} />
   </div>
   <div class="recent-card__body">
-    <div class="recent-card__eyebrow">
-      <span class="recent-card__badge">{label}</span>
-      <span>{meta}</span>
-      <time datetime={dateIso}>{dateLabel}</time>
-    </div>
     <h2 class="recent-card__title">
-      <a class="recent-card__link" href={href}>{title}</a>
+      <a
+        class="recent-card__link"
+        href={href}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noreferrer" : undefined}
+      >
+        {title}
+      </a>
     </h2>
     <p class="recent-card__description">{summary}</p>
   </div>
-  <span class="recent-card__chevron" aria-hidden="true">›</span>
+  <div class="recent-card__aside">
+    <span class="recent-card__badge">{label}</span>
+    <span class="recent-card__meta">{meta}</span>
+    <time class="recent-card__date" datetime={dateIso}>{dateLabel}</time>
+    <span class="recent-card__chevron" aria-hidden="true">›</span>
+  </div>
 </article>

@@ -23,7 +23,7 @@ const recentSpeaking = (await getSpeakingEntries()).map((entry) => ({
   kind: 'speaking' as const,
   title: entry.data.title,
   summary: entry.data.summary,
-  href: withBasePath(`/speaking/#${getSpeakingRouteSlug(entry)}`),
+  href: entry.data.sourceUrl ?? withBasePath(`/speaking/#${getSpeakingRouteSlug(entry)}`),
   date: entry.data.created,
   meta: entry.data.event,
 }));
@@ -75,10 +75,6 @@ const pageDescription =
     <div>
       <h2 class="section-title">Recent</h2>
       <p class="section-kicker">Writing and speaking notes, clearly marked so they do not pretend to be the same thing.</p>
-    </div>
-    <div class="section-links" aria-label="Recent sections">
-      <a class="section-link" href={withBasePath('/blog/')}>Blog</a>
-      <a class="section-link" href={withBasePath('/speaking/')}>Speaking</a>
     </div>
   </section>
 

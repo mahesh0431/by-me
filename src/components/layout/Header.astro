@@ -1,6 +1,5 @@
 ---
 import { withBasePath } from '../../lib/paths';
-import { SITE_NAME } from '../../lib/site';
 import ThemeToggle from '../ui/ThemeToggle.astro';
 import NavLink from './NavLink.astro';
 
@@ -21,15 +20,11 @@ const isSpeaking = currentPath === speakingPath || currentPath.startsWith(`${spe
 <header class="site-header">
   <div class="container site-header__inner">
     <div class="site-header__left">
-      <a class="site-brand" href={withBasePath('/')} aria-label={SITE_NAME}>
-        <span class="site-brand__mark">MP</span>
-      </a>
-
       <nav class="site-nav" aria-label="Primary">
         <NavLink href="/" isActive={currentPath === homePath}>Home</NavLink>
-        <NavLink href="/blog/" isActive={isBlog}>Blog</NavLink>
-        <NavLink href="/speaking/" isActive={isSpeaking}>Speaking</NavLink>
         <NavLink href="/about/" isActive={currentPath === aboutPath}>About</NavLink>
+        <NavLink href="/speaking/" isActive={isSpeaking}>Speaking</NavLink>
+        <NavLink href="/blog/" isActive={isBlog}>Blog</NavLink>
       </nav>
     </div>
 

@@ -1,6 +1,6 @@
 import type { CollectionEntry } from "astro:content";
 
-import { filterAndSortPublishedPosts } from "./blog";
+import { filterAndSortPublishedPosts, groupPostsByYear } from "./blog";
 
 export type SpeakingEntry = CollectionEntry<"speaking">;
 
@@ -11,6 +11,12 @@ export async function getSpeakingEntries(): Promise<SpeakingEntry[]> {
     getSpeakingRouteSlug(entry);
   }
   return filterAndSortPublishedPosts(entries);
+}
+
+export function getSpeakingArchiveGroups(
+  entries: SpeakingEntry[],
+): Array<{ year: number; posts: SpeakingEntry[] }> {
+  return groupPostsByYear(entries);
 }
 
 function getSlugFromId(id: string): string {
