@@ -29,7 +29,23 @@ const profile = defineCollection({
   }),
 });
 
+const speaking = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    slug: z.string().optional(),
+    event: z.string(),
+    location: z.string().optional(),
+    created: z.coerce.date(),
+    summary: z.string(),
+    sourceUrl: z.string().url().optional(),
+    tags: z.array(z.string()).optional(),
+    draft: z.boolean().optional(),
+  }),
+});
+
 export const collections = {
   blog,
   profile,
+  speaking,
 };

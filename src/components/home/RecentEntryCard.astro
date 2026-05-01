@@ -1,0 +1,36 @@
+---
+import EntryIcon from "../ui/EntryIcon.astro";
+
+interface Props {
+  kind: "post" | "speaking";
+  title: string;
+  summary: string;
+  href: string;
+  dateLabel: string;
+  dateIso: string;
+  meta: string;
+  index?: number;
+}
+
+const { kind, title, summary, href, dateLabel, dateIso, meta, index = 0 } = Astro.props;
+const iconName = kind === "speaking" ? "mic" : (["spark", "structure", "book", "note"] as const)[index % 4];
+const label = kind === "speaking" ? "Speaking" : "Post";
+---
+
+<article class:list={["recent-card", `recent-card--${kind}`]}>
+  <div class="recent-card__icon-wrap">
+    <EntryIcon name={iconName} />
+  </div>
+  <div class="recent-card__body">
+    <div class="recent-card__eyebrow">
+      <span class="recent-card__badge">{label}</span>
+      <span>{meta}</span>
+      <time datetime={dateIso}>{dateLabel}</time>
+    </div>
+    <h2 class="recent-card__title">
+      <a class="recent-card__link" href={href}>{title}</a>
+    </h2>
+    <p class="recent-card__description">{summary}</p>
+  </div>
+  <span class="recent-card__chevron" aria-hidden="true">›</span>
+</article>

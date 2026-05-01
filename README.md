@@ -40,6 +40,7 @@ Dev URL (default): `http://127.0.0.1:4321/`
 - `/blog/` - Blog index
 - `/blog/archive/` - Year archive
 - `/blog/[slug]/` - Blog post page
+- `/speaking/` - Talks, workshops, and sessions
 - `/rss.xml` - RSS feed
 
 ## Deployment

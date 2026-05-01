@@ -1,0 +1,66 @@
+---
+import EntryIcon from '../components/ui/EntryIcon.astro';
+import { formatDate } from '../lib/dates';
+import { getProfile } from '../lib/profile';
+import { getSpeakingEntries, getSpeakingRouteSlug } from '../lib/speaking';
+import { createPersonJsonLd } from '../lib/structured-data';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const profile = await getProfile();
+const entries = await getSpeakingEntries();
+const pageDescription =
+  'Talks, workshops, and sessions by Mahesh Palavalli on AI, SAP, enterprise architecture, and building with emerging technology.';
+---
+
+<BaseLayout
+  title="Speaking"
+  description={pageDescription}
+  structuredData={[createPersonJsonLd(profile)]}
+  pageClass="page-speaking"
+>
+  <section class="page-heading page-heading--centered speaking-heading">
+    <p class="page-heading__eyebrow">Talks, workshops, and sessions</p>
+    <h1 class="page-heading__title">Speaking</h1>
+    <p class="page-heading__copy">
+      Places where I share work around AI, SAP, enterprise architecture, and building with new technology.
+    </p>
+    <span class="section-rule" aria-hidden="true"></span>
+  </section>
+
+  {
+    entries.length > 0 ? (
+      <section class="speaking-list">
+        {entries.map((entry) => {
+          const slug = getSpeakingRouteSlug(entry);
+          return (
+            <article class="speaking-card surface" id={slug}>
+              <div class="speaking-card__icon">
+                <EntryIcon name="mic" />
+              </div>
+              <div class="speaking-card__body">
+                <div class="speaking-card__meta">
+                  <span>{entry.data.event}</span>
+                  <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
+                  {entry.data.location && <span>{entry.data.location}</span>}
+                </div>
+                <h2 class="speaking-card__title">{entry.data.title}</h2>
+                <p class="speaking-card__summary">{entry.data.summary}</p>
+                {entry.data.sourceUrl && (
+                  <a class="speaking-card__link" href={entry.data.sourceUrl} target="_blank" rel="noreferrer">
+                    Open source note
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </section>
+    ) : (
+      <section class="content-card surface">
+        <h2 class="page-title">No speaking notes yet</h2>
+        <p>Talks and sessions will show up here.</p>
+      </section>
+    )
+  }
+</BaseLayout>

@@ -1,14 +1,34 @@
 ---
-import PostCard from '../components/blog/PostCard.astro';
+import RecentEntryCard from '../components/home/RecentEntryCard.astro';
 import { withBasePath } from '../lib/paths';
-import { getBlogPosts } from '../lib/blog';
+import { getBlogPosts, getPostRouteSlug } from '../lib/blog';
+import { formatDate } from '../lib/dates';
 import { getProfile } from '../lib/profile';
+import { getSpeakingEntries, getSpeakingRouteSlug } from '../lib/speaking';
 import { createPersonJsonLd, createWebSiteJsonLd } from '../lib/structured-data';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const profile = await getProfile();
 const recentPosts = (await getBlogPosts())
   .filter((post) => !post.data.tags?.includes('archive'))
+  .map((post) => ({
+    kind: 'post' as const,
+    title: post.data.title,
+    summary: post.data.summary,
+    href: withBasePath(`/blog/${getPostRouteSlug(post)}/`),
+    date: post.data.created,
+    meta: 'Blog',
+  }));
+const recentSpeaking = (await getSpeakingEntries()).map((entry) => ({
+  kind: 'speaking' as const,
+  title: entry.data.title,
+  summary: entry.data.summary,
+  href: withBasePath(`/speaking/#${getSpeakingRouteSlug(entry)}`),
+  date: entry.data.created,
+  meta: entry.data.event,
+}));
+const recentEntries = [...recentPosts, ...recentSpeaking]
+  .sort((left, right) => right.date.getTime() - left.date.getTime())
   .slice(0, 5);
 const pageDescription =
   'Mahesh Palavalli is an AI Solutions Architect at SAP, writing about generative AI, SAP architecture, agentic systems, and enterprise technology.';
@@ -53,14 +73,27 @@ const pageDescription =
 
   <section class="section-head">
     <div>
-      <h2 class="section-title">Recent posts</h2>
+      <h2 class="section-title">Recent</h2>
+      <p class="section-kicker">Writing and speaking notes, clearly marked so they do not pretend to be the same thing.</p>
     </div>
-    <a class="section-link" href={withBasePath('/blog/')}>View blog</a>
+    <div class="section-links" aria-label="Recent sections">
+      <a class="section-link" href={withBasePath('/blog/')}>Blog</a>
+      <a class="section-link" href={withBasePath('/speaking/')}>Speaking</a>
+    </div>
   </section>
 
-  <section class="entry-list entry-list--home">
-    {recentPosts.map((post, index) => (
-      <PostCard post={post} index={index} variant="home" />
+  <section class="recent-list entry-list--home">
+    {recentEntries.map((entry, index) => (
+      <RecentEntryCard
+        kind={entry.kind}
+        title={entry.title}
+        summary={entry.summary}
+        href={entry.href}
+        dateLabel={formatDate(entry.date)}
+        dateIso={entry.date.toISOString()}
+        meta={entry.meta}
+        index={index}
+      />
     ))}
   </section>
 </BaseLayout>
