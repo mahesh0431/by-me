@@ -2,6 +2,7 @@ import type { CollectionEntry } from "astro:content";
 
 import { getPostRouteSlug } from "./blog";
 import { withBasePath } from "./paths";
+import { getSpeakingRouteSlug } from "./speaking";
 import {
   DEFAULT_OG_IMAGE,
   LINKEDIN_URL,
@@ -16,6 +17,7 @@ export type JsonLdObject = Record<string, unknown>;
 
 type BlogPost = CollectionEntry<"blog">;
 type Profile = CollectionEntry<"profile">;
+type SpeakingEntry = CollectionEntry<"speaking">;
 
 export function toSiteUrl(path: string, siteOrigin = SITE_ORIGIN): string {
   if (/^https?:\/\//.test(path)) {
@@ -152,4 +154,61 @@ export function createBlogPostingJsonLd(
       "@id": `${siteOrigin}/#person`,
     },
   };
+}
+
+export function createSpeakingJsonLd(
+  entry: SpeakingEntry,
+  profile: Profile,
+  options: { imageUrl?: string | null; siteOrigin?: string } = {},
+): JsonLdObject {
+  const siteOrigin = options.siteOrigin ?? SITE_ORIGIN;
+  const slug = getSpeakingRouteSlug(entry);
+  const url = toSiteUrl(`/speaking/${slug}/`, siteOrigin);
+  const dateModified = entry.data.updated ?? entry.data.created;
+  const title = entry.data.title;
+  const data: JsonLdObject = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": `${url}#speaking-session`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    name: title,
+    headline: title,
+    description: entry.data.summary,
+    url,
+    datePublished: entry.data.created.toISOString(),
+    dateModified: dateModified.toISOString(),
+    inLanguage: "en",
+    keywords: entry.data.tags ?? [],
+    author: {
+      "@id": `${siteOrigin}/#person`,
+      name: profile.data.name,
+    },
+    publisher: {
+      "@id": `${siteOrigin}/#person`,
+    },
+    about: {
+      "@type": "Event",
+      name: entry.data.event,
+      startDate: entry.data.created.toISOString(),
+      location: entry.data.location
+        ? {
+            "@type": "Place",
+            name: entry.data.location,
+          }
+        : undefined,
+    },
+  };
+
+  if (entry.data.sourceUrl) {
+    data.sameAs = entry.data.sourceUrl;
+  }
+
+  if (options.imageUrl) {
+    data.image = toSiteUrl(options.imageUrl, siteOrigin);
+  }
+
+  return data;
 }

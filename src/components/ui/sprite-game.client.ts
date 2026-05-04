@@ -62,6 +62,7 @@ type SpriteGameState = {
   platformsDirty: boolean;
   pressuredElements: Set<HTMLElement>;
   rippleElements: Set<HTMLElement>;
+  ripplePlatformLine: HTMLElement | null;
   rippleTimers: number[];
   rippleToken: number;
   vx: number;
@@ -432,27 +433,6 @@ function getFrameKey(frameSetName: SpriteFrameSetName, frameIndex: number): stri
   return `${frameSetName}:${frameIndex}`;
 }
 
-function getTextEffectTargets(platform: TextPlatform): HTMLElement[] {
-  const root = platform.effectRoot;
-  let letters = Array.from(root.querySelectorAll(".blog-scene-letter")).filter(
-    (element): element is HTMLElement => element instanceof HTMLElement,
-  );
-
-  if (letters.length === 0) {
-    letters = ensureBlogSceneLetters(root);
-  }
-
-  if (letters.length > 0) {
-    return letters;
-  }
-
-  const groupedTargets = Array.from(root.querySelectorAll("time, span, li, a, h1, h2, p")).filter(
-    (element): element is HTMLElement => element instanceof HTMLElement,
-  );
-
-  return groupedTargets.length > 0 ? groupedTargets : [platform.element];
-}
-
 function getTextPressureTargets(platform: TextPlatform): HTMLElement[] {
   let lineLetters = Array.from(
     platform.lineElement.querySelectorAll(".blog-scene-letter"),
@@ -476,6 +456,55 @@ function resetTextPressureElement(element: HTMLElement): void {
   element.style.removeProperty("--sprite-text-pressure-strength");
 }
 
+function resetTextRippleElement(element: HTMLElement): void {
+  delete element.dataset.spriteTextRipple;
+  element.style.removeProperty("--sprite-ripple-delay");
+  element.style.removeProperty("--sprite-ripple-y");
+  element.style.removeProperty("--sprite-ripple-rotate");
+}
+
+function isElementInTextLine(element: HTMLElement, lineElement: HTMLElement): boolean {
+  return element === lineElement || lineElement.contains(element);
+}
+
+function clearTextEffectsOutsideLine(
+  state: SpriteGameState,
+  lineElement: HTMLElement | null,
+): void {
+  for (const element of Array.from(state.pressuredElements)) {
+    if (!element.isConnected || !lineElement || !isElementInTextLine(element, lineElement)) {
+      resetTextPressureElement(element);
+      state.pressuredElements.delete(element);
+    }
+  }
+
+  for (const element of Array.from(state.rippleElements)) {
+    if (!element.isConnected || !lineElement || !isElementInTextLine(element, lineElement)) {
+      resetTextRippleElement(element);
+      state.rippleElements.delete(element);
+    }
+  }
+
+  const activeElements = document.querySelectorAll(
+    '[data-sprite-text-pressure="true"], [data-sprite-text-ripple="true"]',
+  );
+
+  for (const element of activeElements) {
+    if (!(element instanceof HTMLElement)) {
+      continue;
+    }
+
+    if (lineElement && isElementInTextLine(element, lineElement)) {
+      continue;
+    }
+
+    resetTextPressureElement(element);
+    resetTextRippleElement(element);
+    state.pressuredElements.delete(element);
+    state.rippleElements.delete(element);
+  }
+}
+
 function clearTextPressure(state: SpriteGameState): void {
   for (const element of state.pressuredElements) {
     resetTextPressureElement(element);
@@ -489,8 +518,16 @@ function applyTextPressure(runner: HTMLElement, state: SpriteGameState): void {
 
   if (!state.active || !state.grounded || !platform?.element.isConnected) {
     clearTextPressure(state);
+    clearRippleTimers(state);
+    clearTextEffectsOutsideLine(state, null);
     return;
   }
+
+  if (state.ripplePlatformLine && state.ripplePlatformLine !== platform.lineElement) {
+    clearRippleTimers(state);
+  }
+
+  clearTextEffectsOutsideLine(state, platform.lineElement);
 
   const { width } = getRunnerSize(runner);
   const footCenterX = state.x + width / 2;
@@ -550,13 +587,11 @@ function clearRippleTimers(state: SpriteGameState): void {
   }
 
   for (const element of state.rippleElements) {
-    delete element.dataset.spriteTextRipple;
-    element.style.removeProperty("--sprite-ripple-delay");
-    element.style.removeProperty("--sprite-ripple-y");
-    element.style.removeProperty("--sprite-ripple-rotate");
+    resetTextRippleElement(element);
   }
 
   state.rippleElements.clear();
+  state.ripplePlatformLine = null;
 }
 
 function triggerTextRipple(
@@ -569,7 +604,7 @@ function triggerTextRipple(
     return;
   }
 
-  const targets = getTextEffectTargets(platform);
+  const targets = getTextPressureTargets(platform);
 
   if (targets.length === 0) {
     return;
@@ -581,6 +616,8 @@ function triggerTextRipple(
 
   state.rippleToken = token;
   clearRippleTimers(state);
+  clearTextEffectsOutsideLine(state, platform.lineElement);
+  state.ripplePlatformLine = platform.lineElement;
 
   for (const target of targets) {
     const rect = target.getBoundingClientRect();
@@ -609,10 +646,7 @@ function triggerTextRipple(
     }
 
     for (const target of targets) {
-      delete target.dataset.spriteTextRipple;
-      target.style.removeProperty("--sprite-ripple-delay");
-      target.style.removeProperty("--sprite-ripple-y");
-      target.style.removeProperty("--sprite-ripple-rotate");
+      resetTextRippleElement(target);
       state.rippleElements.delete(target);
     }
   }, TEXT_RIPPLE_DURATION_MS + maxDelay);
@@ -986,6 +1020,7 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     platformsDirty: true,
     pressuredElements: new Set<HTMLElement>(),
     rippleElements: new Set<HTMLElement>(),
+    ripplePlatformLine: null,
     rippleTimers: [],
     rippleToken: 0,
     vx: 0,

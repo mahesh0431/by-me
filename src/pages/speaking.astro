@@ -1,6 +1,7 @@
 ---
 import EntryIcon from '../components/ui/EntryIcon.astro';
 import { formatDate } from '../lib/dates';
+import { withBasePath } from '../lib/paths';
 import { getProfile } from '../lib/profile';
 import { getSpeakingArchiveGroups, getSpeakingEntries, getSpeakingRouteSlug } from '../lib/speaking';
 import { createPersonJsonLd } from '../lib/structured-data';
@@ -44,9 +45,9 @@ const pageDescription =
             <div class="archive-panel__posts">
               {group.posts.map((entry) => {
                 const slug = getSpeakingRouteSlug(entry);
-                const href = entry.data.sourceUrl ?? `#${slug}`;
+                const href = withBasePath(`/speaking/${slug}/`);
                 return (
-                  <article class="post-card post-card--speaking" id={slug}>
+                  <article class="post-card post-card--speaking" id={slug} data-card-href={href}>
                     <div class="post-card__icon-wrap">
                       <EntryIcon name="mic" />
                     </div>
@@ -63,20 +64,11 @@ const pageDescription =
                         )}
                       </p>
                       <h2 class="post-card__title">
-                        <a
-                          class="post-card__link"
-                          href={href}
-                          target={entry.data.sourceUrl ? '_blank' : undefined}
-                          rel={entry.data.sourceUrl ? 'noreferrer' : undefined}
-                        >
+                        <a class="post-card__link" href={href}>
                           {entry.data.title}
                         </a>
                       </h2>
                       <p class="post-card__description">{entry.data.summary}</p>
-                    </div>
-                    <div class="post-card__aside">
-                      <span class="post-card__type">Speaking</span>
-                      <span class="post-card__chevron" aria-hidden="true">›</span>
                     </div>
                   </article>
                 );

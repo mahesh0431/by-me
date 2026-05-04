@@ -23,7 +23,7 @@ const recentSpeaking = (await getSpeakingEntries()).map((entry) => ({
   kind: 'speaking' as const,
   title: entry.data.title,
   summary: entry.data.summary,
-  href: entry.data.sourceUrl ?? withBasePath(`/speaking/#${getSpeakingRouteSlug(entry)}`),
+  href: withBasePath(`/speaking/${getSpeakingRouteSlug(entry)}/`),
   date: entry.data.created,
   meta: entry.data.event,
 }));

@@ -1,0 +1,26 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+
+import SpeakingLayout from "../../layouts/SpeakingLayout.astro";
+import { getSpeakingEntries, getSpeakingRouteSlug } from "../../lib/speaking";
+
+export async function getStaticPaths() {
+  const entries = await getSpeakingEntries();
+
+  return entries.map((entry) => ({
+    params: { slug: getSpeakingRouteSlug(entry) },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<"speaking">;
+}
+
+const { entry } = Astro.props as Props;
+const { Content } = await render(entry);
+---
+
+<SpeakingLayout entry={entry}>
+  <Content />
+</SpeakingLayout>

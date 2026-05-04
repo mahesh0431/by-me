@@ -22,7 +22,7 @@ const showDescription = variant !== 'compact';
 const showTags = variant === 'featured';
 ---
 
-<article class:list={['post-card', `post-card--${variant}`]}>
+<article class:list={['post-card', `post-card--${variant}`]} data-card-href={postUrl}>
   <div class="post-card__icon-wrap">
     <EntryIcon name={iconName} />
   </div>

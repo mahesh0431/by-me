@@ -18,7 +18,7 @@ const label = kind === "speaking" ? "Speaking" : "Post";
 const isExternal = /^https?:\/\//.test(href);
 ---
 
-<article class:list={["recent-card", `recent-card--${kind}`]}>
+<article class:list={["recent-card", `recent-card--${kind}`]} data-card-href={href}>
   <div class="recent-card__icon-wrap">
     <EntryIcon name={iconName} />
   </div>

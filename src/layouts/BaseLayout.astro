@@ -125,6 +125,38 @@ const structuredDataItems = Array.isArray(structuredData)
         root.dataset.theme = storedTheme ?? (prefersDark ? "dark" : "light");
       })();
     </script>
+    <script is:inline>
+      (() => {
+        if (window.__cardLinkNavigationBound === true) {
+          return;
+        }
+
+        window.__cardLinkNavigationBound = true;
+        document.addEventListener("click", (event) => {
+          const target = event.target;
+
+          if (!(target instanceof Element)) {
+            return;
+          }
+
+          if (target.closest("a, button, input, select, textarea, [role='button']")) {
+            return;
+          }
+
+          const card = target.closest("[data-card-href]");
+
+          if (!(card instanceof HTMLElement)) {
+            return;
+          }
+
+          const href = card.dataset.cardHref;
+
+          if (href) {
+            window.location.href = href;
+          }
+        });
+      })();
+    </script>
   </head>
   <body class:list={["site-body", pageClass]}>
     <a class="skip-link" href="#main-content">Skip to content</a>
