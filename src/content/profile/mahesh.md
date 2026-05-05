@@ -4,7 +4,7 @@ role: "AI Solutions Architect, Office of the CTO at SAP"
 avatar: "/images/mahesh.png"
 aboutDescription: "About Mahesh Palavalli, AI Solutions Architect at SAP working across generative AI, enterprise architecture, agentic systems, and cloud."
 homeHeading: "Hi, I'm Mahesh"
-homeIntro: "AI Solutions Architect at SAP. I used to write quite a bit on SAP Community, and this space is my way of getting back to writing, learning, and sharing again. Mostly on tech, AI, architecture, and things I find interesting."
+homeIntro: "Architect in SAP’s Office of the CTO, working across enterprise AI, SAP BTP, agentic systems, and real-world implementation. I’ve worked with Fortune 50 customers on enterprise architecture and AI adoption. I write about enterprise architecture, coding, AI, and SAP, with practical notes from where software design meets real enterprise systems."
 ---
 
 Hey! I'm Mahesh, an AI Solutions Architect at SAP and currently part of the Office of the CTO. These days a lot of my work is around Generative AI, data, and agentic systems, and more importantly, figuring out how to take AI-native ideas into real production architecture for SAP's strategic enterprise customers.
