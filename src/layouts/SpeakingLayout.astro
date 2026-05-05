@@ -70,45 +70,32 @@ function getSpeakingImageSrc(speakingEntry: CollectionEntry<"speaking">, imagePa
     createPersonJsonLd(profile),
     createSpeakingJsonLd(entry, profile, { imageUrl: heroImageSrc }),
   ]}
-  pageClass="page-speaking-detail"
+  pageClass="page-article page-speaking-detail"
 >
   <article class="article-shell">
     <a class="back-link" href={withBasePath("/speaking/")}>Back to Speaking</a>
     <div class="article-frame surface">
       <header class="article-hero">
-        <p class="speaking-meta">
-          <span>{entry.data.event}</span>
-          <span aria-hidden="true">·</span>
-          <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
-          {
-            entry.data.location && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>{entry.data.location}</span>
-              </>
-            )
-          }
-          {
-            updatedLabel && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>Updated {updatedLabel}</span>
-              </>
-            )
-          }
-        </p>
         <h1 class="article-title">{entry.data.title}</h1>
         <p class="article-lead">{entry.data.summary}</p>
         <span class="section-rule" aria-hidden="true"></span>
-        {
-          entry.data.tags && entry.data.tags.length > 0 && (
-            <ul class="post-tags" aria-label="Tags">
-              {entry.data.tags.map((tag) => (
-                <li>{tag}</li>
-              ))}
-            </ul>
-          )
-        }
+        <div class="post-meta-block">
+          <p class="post-meta">
+            <span>{entry.data.event}</span>
+            <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
+            {entry.data.location && <span>{entry.data.location}</span>}
+            {updatedLabel && <span>Updated {updatedLabel}</span>}
+          </p>
+          {
+            entry.data.tags && entry.data.tags.length > 0 && (
+              <ul class="post-tags" aria-label="Tags">
+                {entry.data.tags.map((tag) => (
+                  <li>{tag}</li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
         {
           heroImageSrc && (
             <img
