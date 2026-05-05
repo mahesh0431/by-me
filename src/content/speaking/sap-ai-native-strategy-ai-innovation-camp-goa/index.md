@@ -7,7 +7,6 @@ created: 2026-05-01
 updated: 2026-05-05
 summary: "A session on SAP's AI-Native strategy and how enterprise architecture changes when AI becomes part of the application, platform, data, integration, and engineering stack."
 sourceUrl: "https://www.linkedin.com/posts/maheshpalavalli_so-recently-i-got-to-present-saps-ai-native-ugcPost-7455223692269342720-9_Ny"
-heroImage: "./images/image-1.jpg"
 tags:
   - ai
   - sap
@@ -25,6 +24,8 @@ And of course, the hackathon was the cherry on top. I got a chance to be part of
 Thanks to Poornanand Kulkarni, Kumari Supriya, and the other amazing colleagues for putting together such a thoughtful experience.
 
 ## Photos
+
+![AI Innovation Camp speaking photo](./images/image-1.jpg)
 
 ![AI Innovation Camp session photo](./images/image-2.jpg)
 

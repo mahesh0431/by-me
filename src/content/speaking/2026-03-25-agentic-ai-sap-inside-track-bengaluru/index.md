@@ -8,7 +8,6 @@ updated: 2026-05-05
 summary: "A session on how agentic AI is reshaping architect and developer roles beyond prompting, with a focus on fundamentals, domain understanding, and lifecycle thinking."
 sourceUrl: "https://www.linkedin.com/feed/update/urn:li:ugcPost:7341446578315939840/"
 slidesUrl: "https://lnkd.in/g2NpxdbD"
-heroImage: "./images/image-1.jpg"
 tags:
   - ai
   - sap
@@ -24,6 +23,8 @@ The good news is that AI makes this more accessible too. It can help us learn fa
 The energy and questions after the session were really encouraging. I also got the opportunity to give a separate session for students on SAP BTP, which made the whole experience even better.
 
 ## Photos
+
+![SAP Inside Track Bengaluru agentic AI speaking photo](./images/image-1.jpg)
 
 ![SAP Inside Track Bengaluru agentic AI session photo](./images/image-2.jpg)
 
