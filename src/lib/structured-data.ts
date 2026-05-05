@@ -61,12 +61,15 @@ export function createPersonJsonLd(profile: Profile, siteOrigin = SITE_ORIGIN): 
     },
     sameAs: [LINKEDIN_URL, X_URL],
     knowsAbout: [
-      "Generative AI",
+      "Enterprise AI",
       "Agentic systems",
+      "SAP BTP",
       "SAP architecture",
       "Enterprise architecture",
-      "SAP BTP",
-      "Cloud architecture",
+      "Coding",
+      "ERP workflows",
+      "AI adoption",
+      "Real-world enterprise systems",
     ],
   };
 }
@@ -105,7 +108,7 @@ export function createBlogJsonLd(
     "@type": "Blog",
     "@id": `${url}#blog`,
     url,
-    name: `${OWNER_NAME} Blog`,
+    name: `${OWNER_NAME} Writing`,
     description,
     inLanguage: "en",
     author: {

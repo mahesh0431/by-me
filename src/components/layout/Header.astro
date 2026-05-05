@@ -23,8 +23,8 @@ const isSpeaking = currentPath === speakingPath || currentPath.startsWith(`${spe
       <nav class="site-nav" aria-label="Primary">
         <NavLink href="/" isActive={currentPath === homePath}>Home</NavLink>
         <NavLink href="/about/" isActive={currentPath === aboutPath}>About</NavLink>
-        <NavLink href="/speaking/" isActive={isSpeaking}>Speaking</NavLink>
-        <NavLink href="/blog/" isActive={isBlog}>Blog</NavLink>
+        <NavLink href="/speaking/" isActive={isSpeaking}>Talks</NavLink>
+        <NavLink href="/blog/" isActive={isBlog}>Writing</NavLink>
       </nav>
     </div>
 

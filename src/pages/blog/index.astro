@@ -15,7 +15,7 @@ const profile = await getProfile();
 const posts = await getBlogPosts();
 const archiveGroups = getBlogArchiveGroups(posts);
 const pageDescription =
-  'Writing from Mahesh Palavalli on AI, SAP architecture, generative UI, agentic systems, and enterprise technology.';
+  'Writing from Mahesh Palavalli on enterprise architecture, coding, AI, SAP, agentic systems, and practical lessons from real enterprise systems.';
 const structuredData = [createPersonJsonLd(profile), createBlogJsonLd('/blog/', pageDescription)];
 
 const sceneGroups = archiveGroups.map(({ year, posts }) => ({
@@ -35,14 +35,14 @@ const sceneGroups = archiveGroups.map(({ year, posts }) => ({
 ---
 
 <BaseLayout
-  title="Blog"
+  title="Writing"
   description={pageDescription}
   structuredData={structuredData}
   pageClass="page-archive"
 >
   <section class="page-heading page-heading--centered">
-    <h1 class="page-heading__title">Blog</h1>
-    <p class="page-heading__copy">Posts grouped by year.</p>
+    <h1 class="page-heading__title">Writing</h1>
+    <p class="page-heading__copy">Notes and posts grouped by year.</p>
     <span class="section-rule" aria-hidden="true"></span>
   </section>
 
