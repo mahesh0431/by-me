@@ -25,8 +25,8 @@ Thanks to Poornanand Kulkarni, Kumari Supriya, and the other amazing colleagues 
 
 ## Photos
 
-![AI Innovation Camp speaking photo](./images/image-1.jpg)
+![AI Innovation Camp speaking photo](./images/image-1.jpeg)
 
-![AI Innovation Camp session photo](./images/image-2.jpg)
+![AI Innovation Camp session photo](./images/image-2.png)
 
-![AI Innovation Camp group photo](./images/image-3.jpg)
+![AI Innovation Camp group photo](./images/image-3.jpeg)
