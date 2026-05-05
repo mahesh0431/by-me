@@ -1,7 +1,7 @@
 export const SITE_NAME = "Mahesh Palavalli";
 export const OWNER_NAME = "Mahesh Palavalli";
 export const SITE_DESCRIPTION =
-  "Mahesh Palavalli writes about enterprise AI, SAP architecture, agentic systems, developer experience, and production lessons from building with AI.";
+  "Mahesh Palavalli writes about generative AI, SAP architecture, agentic systems, enterprise technology, and lessons from building with AI.";
 export const LINKEDIN_URL = "https://www.linkedin.com/in/maheshpalavalli/";
 export const X_URL = "https://x.com/maheshk_p";
 export const DISPLAY_TIMEZONE = "Asia/Kolkata";
