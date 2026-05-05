@@ -21,6 +21,7 @@ interface Props {
   articleTags?: string[];
   structuredData?: JsonLdObject | JsonLdObject[];
   pageClass?: string;
+  showScrollControls?: boolean;
 }
 
 const {
@@ -35,6 +36,7 @@ const {
   articleTags = [],
   structuredData,
   pageClass = "",
+  showScrollControls = false,
 } = Astro.props;
 const pageTitle = title === SITE_NAME ? SITE_NAME : `${title} | ${SITE_NAME}`;
 const siteOrigin = Astro.site ? new URL(Astro.site.toString()) : new URL(SITE_ORIGIN);
@@ -167,7 +169,7 @@ const structuredDataItems = Array.isArray(structuredData)
           <slot />
         </div>
       </main>
-      <ScrollControls />
+      {showScrollControls && <ScrollControls />}
     </div>
   </body>
 </html>

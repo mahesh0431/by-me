@@ -39,6 +39,7 @@ const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString
   articleTags={post.data.tags}
   structuredData={[createPersonJsonLd(profile), createBlogPostingJsonLd(post, profile)]}
   pageClass="page-article"
+  showScrollControls
 >
   <article class="article-shell">
     <a class="back-link" href={withBasePath("/blog/")}>Back to blog</a>
