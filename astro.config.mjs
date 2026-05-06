@@ -11,7 +11,16 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: "viewport",
   },
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) =>
+        ![
+          "https://maheshpalavalli.com/blog/archive/",
+          "https://maheshpalavalli.com/blog/generate-ui-in-erp-kind-of-fixed-not-fixed/",
+          "https://maheshpalavalli.com/blog/2026-03-25-agentic-ai-sap-inside-track-bengaluru/",
+        ].includes(page),
+    }),
+  ],
   markdown: {
     shikiConfig: {
       themes: {
