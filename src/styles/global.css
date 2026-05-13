@@ -1200,6 +1200,12 @@ img {
     );
 }
 
+.page-article .article-frame {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
