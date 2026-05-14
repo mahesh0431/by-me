@@ -11,19 +11,19 @@ const profile = await getProfile();
 const entries = await getSpeakingEntries();
 const archiveGroups = getSpeakingArchiveGroups(entries);
 const pageDescription =
-  'Talks, workshops, and sessions by Mahesh Palavalli on AI, SAP, enterprise architecture, and building with emerging technology.';
+  'Talks, workshops, and events by Mahesh Palavalli on enterprise AI, SAP, SAP BTP, agentic systems, enterprise architecture, and real-world implementation.';
 ---
 
 <BaseLayout
-  title="Speaking"
+  title="Talks and Events"
   description={pageDescription}
   structuredData={[createPersonJsonLd(profile)]}
   pageClass="page-speaking"
 >
   <section class="page-heading page-heading--centered">
-    <h1 class="page-heading__title">Speaking</h1>
+    <h1 class="page-heading__title">Talks and Events</h1>
     <p class="page-heading__copy">
-      Talks, workshops, and sessions around AI, SAP, enterprise architecture, and building with new technology.
+      Talks, workshops, and events on enterprise AI, SAP, SAP BTP, agentic systems, architecture, and building for real enterprise systems.
     </p>
     <span class="section-rule" aria-hidden="true"></span>
   </section>

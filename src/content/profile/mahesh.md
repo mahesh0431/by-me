@@ -1,14 +1,14 @@
 ---
 name: "Mahesh Palavalli"
-role: "AI Solutions Architect, Office of the CTO at SAP"
+role: "Architect, Office of the CTO at SAP"
 avatar: "/images/mahesh.png"
-aboutDescription: "About Mahesh Palavalli, AI Solutions Architect at SAP working across generative AI, enterprise architecture, agentic systems, and cloud."
+aboutDescription: "About Mahesh Palavalli, an architect in SAP’s Office of the CTO working across enterprise AI, SAP BTP, agentic systems, enterprise architecture, and real-world implementation."
 homeHeading: "Hi, I'm Mahesh"
-homeIntro: "AI Solutions Architect at SAP. I used to write quite a bit on SAP Community, and this space is my way of getting back to writing, learning, and sharing again. Mostly on tech, AI, architecture, and things I find interesting."
+homeIntro: "Architect in SAP’s Office of the CTO, working across enterprise AI, SAP BTP, agentic systems, and real-world implementation. I’ve worked with Fortune 50 customers on enterprise architecture and AI adoption. I write about enterprise architecture, coding, AI, and SAP, with practical notes from where software design meets real enterprise systems."
 ---
 
-Hey! I'm Mahesh, an AI Solutions Architect at SAP and currently part of the Office of the CTO. These days a lot of my work is around Generative AI, data, and agentic systems, and more importantly, figuring out how to take AI-native ideas into real production architecture for SAP's strategic enterprise customers.
+Hey! I'm Mahesh, an architect in SAP’s Office of the CTO. These days a lot of my work is around enterprise AI, SAP BTP, data, and agentic systems, especially how AI-native ideas move from demos into real enterprise systems.
 
-Over the last 13+ years, I've designed and delivered enterprise applications across SAP platforms, AI ecosystems, and hyperscaler environments. My work today also involves collaborating across lines of business, partners, and emerging AI-native companies, helping shape scalable AI capabilities, reference patterns, and architecture direction. Before this, I worked on digital government platforms in the UAE, real estate modernization, and large-scale SAP delivery.
+Over the last 13+ years, I've designed and delivered enterprise applications across SAP platforms, AI ecosystems, and hyperscaler environments. I’ve worked with global enterprise customers, including Fortune 50 customers, on enterprise architecture, SAP platforms, and AI adoption. My work also involves collaborating across lines of business, partners, and AI-native companies to shape scalable capabilities, reference patterns, and architecture direction.
 
-I also speak at community events and I'm an author at SAP PRESS. Over the years I've written 40+ blog posts on SAP Community, but I've been away from writing for quite some time now. So this space is also a small restart for me, a place to get back to writing, learning, and sharing as I go. Mostly on tech, AI, and architecture, and sometimes just general things that I find interesting.
+I speak at community and industry events, and I'm also an author at SAP PRESS. Over the years I've written 40+ posts on SAP Community. This site is where I collect my writing, talks, events, and notes on enterprise architecture, coding, AI, SAP, and the practical side of building software for real enterprise systems.

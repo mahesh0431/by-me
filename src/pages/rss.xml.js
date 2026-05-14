@@ -7,7 +7,7 @@ export async function GET(context) {
   const posts = await getPublishedBlogPosts();
 
   return rss({
-    title: `${OWNER_NAME} Blog`,
+    title: `${OWNER_NAME} Writing`,
     description: SITE_DESCRIPTION,
     site: context.site,
     items: posts.map((post) => ({
