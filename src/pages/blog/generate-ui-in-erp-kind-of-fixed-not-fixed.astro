@@ -1,7 +1,9 @@
 ---
 import { withBasePath } from '../../lib/paths';
+import { SITE_ORIGIN } from '../../lib/site';
 
 const postPath = withBasePath('/blog/generative-ui-in-erp-kind-of-fixed-not-fixed/');
+const canonicalUrl = new URL(postPath, SITE_ORIGIN).toString();
 ---
 
 <!doctype html>
@@ -10,7 +12,7 @@ const postPath = withBasePath('/blog/generative-ui-in-erp-kind-of-fixed-not-fixe
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content={`0;url=${postPath}`} />
     <meta name="robots" content="noindex" />
-    <link rel="canonical" href={postPath} />
+    <link rel="canonical" href={canonicalUrl} />
     <title>Redirecting to Generative UI in ERP</title>
   </head>
   <body>

@@ -1,7 +1,9 @@
 ---
 import { withBasePath } from '../../lib/paths';
+import { SITE_ORIGIN } from '../../lib/site';
 
 const speakingPath = withBasePath('/speaking/2026-03-25-agentic-ai-sap-inside-track-bengaluru/');
+const canonicalUrl = new URL(speakingPath, SITE_ORIGIN).toString();
 ---
 
 <!doctype html>
@@ -10,7 +12,7 @@ const speakingPath = withBasePath('/speaking/2026-03-25-agentic-ai-sap-inside-tr
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content={`0;url=${speakingPath}`} />
     <meta name="robots" content="noindex" />
-    <link rel="canonical" href={speakingPath} />
+    <link rel="canonical" href={canonicalUrl} />
     <title>Redirecting to Speaking</title>
   </head>
   <body>

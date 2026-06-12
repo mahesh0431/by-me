@@ -1,7 +1,9 @@
 ---
 import { withBasePath } from '../../lib/paths';
+import { SITE_ORIGIN } from '../../lib/site';
 
 const blogPath = withBasePath('/blog/');
+const canonicalUrl = new URL(blogPath, SITE_ORIGIN).toString();
 ---
 
 <!doctype html>
@@ -10,7 +12,7 @@ const blogPath = withBasePath('/blog/');
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content={`0;url=${blogPath}`} />
     <meta name="robots" content="noindex" />
-    <link rel="canonical" href={blogPath} />
+    <link rel="canonical" href={canonicalUrl} />
     <title>Redirecting to blog</title>
   </head>
   <body>
