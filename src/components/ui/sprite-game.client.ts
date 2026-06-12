@@ -73,6 +73,90 @@ type SpriteGameState = {
   y: number;
 };
 
+type EndlessPlatformKind = "plank" | "barrel" | "rope";
+type EndlessPowerKind = "magnet" | "rescue" | "sail";
+
+type EndlessPlatform = {
+  element: HTMLElement;
+  height: number;
+  id: number;
+  kind: EndlessPlatformKind;
+  variant: number;
+  vx: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+type EndlessCoin = {
+  collected: boolean;
+  element: HTMLElement;
+  id: number;
+  variant: number;
+  x: number;
+  y: number;
+};
+
+type EndlessPowerUp = {
+  collected: boolean;
+  element: HTMLElement;
+  id: number;
+  kind: EndlessPowerKind;
+  x: number;
+  y: number;
+};
+
+type EndlessPlayerState = {
+  height: number;
+  vx: number;
+  vy: number;
+  width: number;
+  x: number;
+  y: number;
+};
+
+type EndlessGameState = {
+  active: boolean;
+  activeFrameElement: HTMLImageElement | null;
+  animationFrameId: number | null;
+  bestElement: HTMLElement;
+  bestScore: number;
+  coinLayer: HTMLElement;
+  coins: EndlessCoin[];
+  elapsedSeconds: number;
+  field: HTMLElement;
+  frameImages: Map<string, HTMLImageElement>;
+  frames: SpriteFrame[];
+  gameOver: boolean;
+  gameOverElement: HTMLElement;
+  jumpCount: number;
+  keys: Set<ControlKey>;
+  lastFrameAt: number;
+  lastTime: number;
+  currentFrameIndex: number;
+  currentFrameSet: SpriteFrameSetName;
+  messageCopyElement: HTMLElement;
+  messageTitleElement: HTMLElement;
+  nextId: number;
+  overlay: HTMLElement;
+  paused: boolean;
+  platformLayer: HTMLElement;
+  platforms: EndlessPlatform[];
+  player: EndlessPlayerState;
+  playerElement: HTMLElement;
+  powerElement: HTMLElement;
+  powerLayer: HTMLElement;
+  powerUps: EndlessPowerUp[];
+  rescueCharges: number;
+  score: number;
+  scoreElement: HTMLElement;
+  speedElement: HTMLElement;
+  statusElement: HTMLElement;
+  magnetUntil: number;
+  sailUntil: number;
+  walkFrames: SpriteFrame[];
+};
+
 const TEXT_PLATFORM_SELECTOR = [
   "[data-blog-scene-root] .blog-scene-line-fragment",
   "[data-blog-scene-root] .blog-year-group__title",
@@ -110,6 +194,10 @@ const BOTTOM_FLOOR_GAP_PX = 38;
 const LANDING_RIPPLE_MIN_VELOCITY = 0;
 const TEXT_RIPPLE_DURATION_MS = 760;
 const VIEWPORT_PADDING_PX = 6;
+const ENDLESS_BEST_SCORE_KEY = "by-me:luffy-endless-best-score";
+const ENDLESS_DESPAWN_PADDING_PX = 90;
+const ENDLESS_DEFAULT_PLAYER_SIZE_PX = 140;
+const ENDLESS_POWERUP_SIZE_PX = 42;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -270,6 +358,29 @@ function setRunnerData(runner: HTMLElement, key: string, value: string): void {
   if (runner.dataset[key] !== value) {
     runner.dataset[key] = value;
   }
+}
+
+function readStoredBestScore(): number {
+  try {
+    const value = window.localStorage.getItem(ENDLESS_BEST_SCORE_KEY);
+    const score = value ? Number.parseInt(value, 10) : 0;
+    return Number.isFinite(score) ? score : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeStoredBestScore(score: number): void {
+  try {
+    window.localStorage.setItem(ENDLESS_BEST_SCORE_KEY, String(score));
+  } catch {
+    // Best score persistence is nice-to-have; the game should still play without storage.
+  }
+}
+
+function queryHTMLElement(root: ParentNode, selector: string): HTMLElement | null {
+  const element = root.querySelector(selector);
+  return element instanceof HTMLElement ? element : null;
 }
 
 function getTextEffectRoot(element: HTMLElement): HTMLElement {
@@ -980,6 +1091,676 @@ function pauseGame(runner: HTMLElement, state: SpriteGameState): void {
   }
 }
 
+function setModePickerOpen(runner: HTMLButtonElement, picker: HTMLElement | null, open: boolean): void {
+  if (!picker) {
+    return;
+  }
+
+  picker.hidden = !open;
+  runner.setAttribute("aria-expanded", String(open));
+}
+
+function getEndlessFieldSize(state: EndlessGameState): { height: number; width: number } {
+  const rect = state.field.getBoundingClientRect();
+  return {
+    height: Math.max(rect.height, 360),
+    width: Math.max(rect.width, 280),
+  };
+}
+
+function getEndlessSpeed(state: EndlessGameState): number {
+  return Math.min(104 + state.elapsedSeconds * 5.2 + state.jumpCount * 1.9, 334);
+}
+
+function getEndlessDifficulty(state: EndlessGameState): number {
+  return clamp(state.elapsedSeconds / 48 + state.jumpCount / 60, 0, 1);
+}
+
+function clearEndlessEntities(state: EndlessGameState): void {
+  for (const platform of state.platforms) {
+    platform.element.remove();
+  }
+
+  for (const coin of state.coins) {
+    coin.element.remove();
+  }
+
+  for (const powerUp of state.powerUps) {
+    powerUp.element.remove();
+  }
+
+  state.platforms = [];
+  state.coins = [];
+  state.powerUps = [];
+}
+
+function createEndlessPlatform(
+  state: EndlessGameState,
+  y: number,
+  forcedX?: number,
+  forcedWidth?: number,
+): EndlessPlatform {
+  const { width: fieldWidth } = getEndlessFieldSize(state);
+  const difficulty = getEndlessDifficulty(state);
+  const kindRoll = Math.random();
+  const kind: EndlessPlatformKind =
+    kindRoll > 0.82 && difficulty > 0.25 ? "rope" : kindRoll > 0.64 ? "barrel" : "plank";
+  const platformWidth =
+    forcedWidth ??
+    Math.round(
+      kind === "barrel"
+        ? 116 + Math.random() * 58
+        : kind === "rope"
+          ? 148 + Math.random() * 70
+          : 136 - difficulty * 44 + Math.random() * (84 - difficulty * 30),
+    );
+  const platformHeight = kind === "barrel" ? 34 : kind === "rope" ? 22 : 26;
+  const variant = kind === "plank" ? 1 + Math.floor(Math.random() * 4) : 1 + Math.floor(Math.random() * 2);
+  const x =
+    forcedX ??
+    Math.round(
+      VIEWPORT_PADDING_PX +
+        Math.random() * Math.max(fieldWidth - platformWidth - VIEWPORT_PADDING_PX * 2, 1),
+    );
+  const platformElement = document.createElement("span");
+
+  platformElement.className = `sprite-endless__platform sprite-endless__platform--${kind} sprite-endless__platform--${kind}-${variant}`;
+  platformElement.dataset.endlessPlatform = kind;
+  state.platformLayer.append(platformElement);
+
+  return {
+    element: platformElement,
+    height: platformHeight,
+    id: state.nextId++,
+    kind,
+    variant,
+    vx:
+      difficulty > 0.38 && Math.random() > 0.76
+        ? (Math.random() > 0.5 ? 1 : -1) * (34 + difficulty * 46)
+        : 0,
+    width: platformWidth,
+    x,
+    y,
+  };
+}
+
+function getEndlessPowerLabel(state: EndlessGameState): string {
+  const now = performance.now();
+  const labels: string[] = [];
+
+  if (state.sailUntil > now) {
+    labels.push("Sail");
+  }
+
+  if (state.magnetUntil > now) {
+    labels.push("Magnet");
+  }
+
+  if (state.rescueCharges > 0) {
+    labels.push("Rescue");
+  }
+
+  return labels.length > 0 ? labels.join(" + ") : "None";
+}
+
+function seedEndlessPlatforms(
+  state: EndlessGameState,
+  startX?: number,
+  startPlatformY?: number,
+): void {
+  clearEndlessEntities(state);
+  const { height, width } = getEndlessFieldSize(state);
+  const startPlatformWidth = 176;
+  const safeStartY = clamp(startPlatformY ?? height - 96, 120, height - 74);
+  const safeStartX = clamp(
+    (startX ?? width / 2) - startPlatformWidth / 2,
+    VIEWPORT_PADDING_PX,
+    width - startPlatformWidth - VIEWPORT_PADDING_PX,
+  );
+  const startPlatform = createEndlessPlatform(state, safeStartY, safeStartX, startPlatformWidth);
+
+  state.platforms.push(startPlatform);
+
+  let y = safeStartY - 96;
+  let anchorX = safeStartX + startPlatformWidth / 2;
+
+  while (y > -ENDLESS_DESPAWN_PADDING_PX) {
+    const platform = createEndlessPlatform(state, y);
+    const drift = (Math.random() - 0.5) * 246;
+    anchorX = clamp(anchorX + drift, platform.width / 2 + 10, width - platform.width / 2 - 10);
+    platform.x = Math.round(anchorX - platform.width / 2);
+    state.platforms.push(platform);
+    y -= 80 + Math.random() * 38;
+  }
+}
+
+function spawnEndlessPlatforms(state: EndlessGameState): void {
+  const highestPlatform = state.platforms.reduce<EndlessPlatform | null>(
+    (highest, platform) => (!highest || platform.y < highest.y ? platform : highest),
+    null,
+  );
+
+  if (!highestPlatform || highestPlatform.y < -68) {
+    return;
+  }
+
+  const { width } = getEndlessFieldSize(state);
+  const difficulty = getEndlessDifficulty(state);
+  const gap = 82 + Math.random() * (42 + difficulty * 32);
+  const platform = createEndlessPlatform(state, highestPlatform.y - gap);
+  const anchorX = highestPlatform.x + highestPlatform.width / 2;
+  const horizontalDrift = (Math.random() - 0.5) * (254 + difficulty * 164);
+  const nextCenterX = clamp(
+    anchorX + horizontalDrift,
+    platform.width / 2 + 10,
+    width - platform.width / 2 - 10,
+  );
+
+  platform.x = Math.round(nextCenterX - platform.width / 2);
+  state.platforms.push(platform);
+}
+
+function updateEndlessHud(state: EndlessGameState): void {
+  state.scoreElement.textContent = String(Math.max(0, Math.floor(state.score)));
+  state.bestElement.textContent = String(state.bestScore);
+  state.speedElement.textContent = `${(getEndlessSpeed(state) / 118).toFixed(1)}x`;
+  state.powerElement.textContent = getEndlessPowerLabel(state);
+}
+
+function renderEndlessGame(state: EndlessGameState): void {
+  const facing = state.player.vx < -8 ? -1 : 1;
+  const frameSetName: SpriteFrameSetName = Math.abs(state.player.vx) > 24 ? "walk" : "default";
+  const frameList = frameSetName === "walk" ? state.walkFrames : state.frames;
+  const frameIndex =
+    Math.abs(state.player.vx) > 24
+      ? Math.floor(state.elapsedSeconds * 11) % frameList.length
+      : state.player.vy < 0
+        ? Math.min(1, frameList.length - 1)
+        : Math.min(3, frameList.length - 1);
+  const frameElement = state.frameImages.get(getFrameKey(frameSetName, frameIndex));
+
+  if (
+    frameElement &&
+    (state.currentFrameSet !== frameSetName ||
+      state.currentFrameIndex !== frameIndex ||
+      state.activeFrameElement !== frameElement)
+  ) {
+    if (state.activeFrameElement) {
+      state.activeFrameElement.dataset.spriteEndlessFrameActive = "false";
+    }
+
+    frameElement.dataset.spriteEndlessFrameActive = "true";
+    state.activeFrameElement = frameElement;
+    state.currentFrameSet = frameSetName;
+    state.currentFrameIndex = frameIndex;
+  }
+
+  state.playerElement.style.width = `${state.player.width}px`;
+  state.playerElement.style.height = `${state.player.height}px`;
+  state.playerElement.style.transform = `translate3d(${state.player.x.toFixed(2)}px, ${state.player.y.toFixed(2)}px, 0) scaleX(${facing})`;
+
+  for (const platform of state.platforms) {
+    platform.element.style.width = `${platform.width}px`;
+    platform.element.style.height = `${platform.height}px`;
+    platform.element.style.transform = `translate3d(${platform.x.toFixed(2)}px, ${platform.y.toFixed(2)}px, 0)`;
+  }
+
+  for (const coin of state.coins) {
+    coin.element.hidden = coin.collected;
+    coin.element.style.transform = `translate3d(${coin.x.toFixed(2)}px, ${coin.y.toFixed(2)}px, 0)`;
+  }
+
+  for (const powerUp of state.powerUps) {
+    powerUp.element.hidden = powerUp.collected;
+    powerUp.element.style.transform = `translate3d(${powerUp.x.toFixed(2)}px, ${powerUp.y.toFixed(2)}px, 0)`;
+  }
+
+  updateEndlessHud(state);
+}
+
+function setEndlessMessage(
+  state: EndlessGameState,
+  title: string,
+  copy: string,
+  visible: boolean,
+): void {
+  state.gameOverElement.hidden = !visible;
+  state.messageTitleElement.textContent = title;
+  state.messageCopyElement.textContent = copy;
+}
+
+function resetEndlessGame(state: EndlessGameState, runnerRect?: DOMRect): void {
+  const { height, width } = getEndlessFieldSize(state);
+  const playerWidth = Math.round(runnerRect?.width ?? ENDLESS_DEFAULT_PLAYER_SIZE_PX);
+  const playerHeight = Math.round(runnerRect?.height ?? ENDLESS_DEFAULT_PLAYER_SIZE_PX);
+  const spawnCenterX = width / 2;
+  const spawnTop = height - playerHeight - 126;
+  const spawnY = clamp(spawnTop, 24, height - playerHeight - 78);
+
+  state.active = true;
+  state.paused = false;
+  state.gameOver = false;
+  state.elapsedSeconds = 0;
+  state.jumpCount = 0;
+  state.magnetUntil = 0;
+  state.rescueCharges = 0;
+  state.sailUntil = 0;
+  state.score = 0;
+  state.lastTime = performance.now();
+  state.keys.clear();
+  state.player = {
+    height: playerHeight,
+    vx: 0,
+    vy: -860,
+    width: playerWidth,
+    x: clamp(spawnCenterX - playerWidth / 2, 4, width - playerWidth - 4),
+    y: spawnY,
+  };
+  state.statusElement.textContent = "Use left and right. Land to bounce.";
+  setEndlessMessage(state, "Game Over", "Fell into the water.", false);
+  seedEndlessPlatforms(state, spawnCenterX, spawnY + playerHeight - 4);
+  renderEndlessGame(state);
+}
+
+function endEndlessGame(state: EndlessGameState): void {
+  state.active = false;
+  state.gameOver = true;
+  state.keys.clear();
+  state.bestScore = Math.max(state.bestScore, Math.floor(state.score));
+  writeStoredBestScore(state.bestScore);
+  state.statusElement.textContent = "Game over. Restart or stop.";
+  setEndlessMessage(state, "Game Over", "Fell into the water.", true);
+
+  if (state.animationFrameId !== null) {
+    window.cancelAnimationFrame(state.animationFrameId);
+    state.animationFrameId = null;
+  }
+
+  updateEndlessHud(state);
+}
+
+function rescueEndlessPlayer(state: EndlessGameState): void {
+  const { height, width } = getEndlessFieldSize(state);
+  const rescuePlatform = createEndlessPlatform(state, height - 118, width / 2 - 96, 192);
+
+  state.platforms.push(rescuePlatform);
+  state.player.x = rescuePlatform.x + rescuePlatform.width / 2 - state.player.width / 2;
+  state.player.y = rescuePlatform.y - state.player.height - 2;
+  state.player.vx = 0;
+  state.player.vy = -940;
+  state.rescueCharges -= 1;
+  state.statusElement.textContent = "Lifebuoy rescue!";
+  state.score += 110;
+}
+
+function stopEndlessGame(runner: HTMLElement, state: EndlessGameState): void {
+  state.active = false;
+  state.paused = false;
+  state.gameOver = false;
+  state.keys.clear();
+  state.overlay.hidden = true;
+  state.overlay.setAttribute("aria-hidden", "true");
+  clearEndlessEntities(state);
+  delete document.documentElement.dataset.spriteEndlessActive;
+  delete runner.dataset.controlMode;
+  runner.dataset.gameState = "idle";
+  runner.dataset.motionState = "idle";
+  runner.dataset.state = "idle";
+  runner.setAttribute("aria-label", "Open Luffy Mini Game modes.");
+
+  if (state.animationFrameId !== null) {
+    window.cancelAnimationFrame(state.animationFrameId);
+    state.animationFrameId = null;
+  }
+}
+
+function stepEndlessGame(state: EndlessGameState, now: number): void {
+  if (!state.active || state.paused || state.gameOver) {
+    return;
+  }
+
+  const { height, width } = getEndlessFieldSize(state);
+  const deltaSeconds = Math.min(Math.max((now - state.lastTime) / 1000, 0), 0.035);
+  const previousBottom = state.player.y + state.player.height;
+  const platformSpeed = getEndlessSpeed(state);
+  const nowMs = performance.now();
+  const hasSail = state.sailUntil > nowMs;
+  const hasMagnet = state.magnetUntil > nowMs;
+  const leftPressed = state.keys.has("left");
+  const rightPressed = state.keys.has("right");
+  const moveSpeed = hasSail ? 460 : 360;
+  const targetVelocity = (rightPressed ? 1 : 0) * moveSpeed - (leftPressed ? 1 : 0) * moveSpeed;
+
+  state.lastTime = now;
+  state.elapsedSeconds += deltaSeconds;
+  state.score += deltaSeconds * (9 + platformSpeed / 42);
+
+  if (targetVelocity !== 0) {
+    state.player.vx = moveToward(state.player.vx, targetVelocity, (hasSail ? 4300 : 3200) * deltaSeconds);
+  } else {
+    state.player.vx = moveToward(state.player.vx, 0, (hasSail ? 3400 : 2600) * deltaSeconds);
+  }
+
+  state.player.vy = Math.min(state.player.vy + (hasSail ? 1950 : 2250) * deltaSeconds, 1420);
+  state.player.x = clamp(state.player.x + state.player.vx * deltaSeconds, 4, width - state.player.width - 4);
+  state.player.y += state.player.vy * deltaSeconds;
+
+  const cameraTop = height * 0.36;
+
+  if (state.player.y < cameraTop) {
+    const cameraShift = cameraTop - state.player.y;
+
+    state.player.y = cameraTop;
+    state.score += cameraShift * 0.08;
+
+    for (const platform of state.platforms) {
+      platform.y += cameraShift;
+    }
+
+    for (const coin of state.coins) {
+      coin.y += cameraShift;
+    }
+
+    for (const powerUp of state.powerUps) {
+      powerUp.y += cameraShift;
+    }
+  }
+
+  for (const platform of state.platforms) {
+    platform.y += platformSpeed * deltaSeconds;
+
+    if (platform.vx !== 0) {
+      platform.x += platform.vx * deltaSeconds;
+      if (platform.x < 6 || platform.x + platform.width > width - 6) {
+        platform.vx *= -1;
+        platform.x = clamp(platform.x, 6, width - platform.width - 6);
+      }
+    }
+  }
+
+  for (const coin of state.coins) {
+    coin.y += platformSpeed * deltaSeconds;
+
+    if (hasMagnet && !coin.collected) {
+      const dx = state.player.x + state.player.width / 2 - coin.x;
+      const dy = state.player.y + state.player.height / 2 - coin.y;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance < 150 && distance > 1) {
+        coin.x += (dx / distance) * 260 * deltaSeconds;
+        coin.y += (dy / distance) * 260 * deltaSeconds;
+      }
+    }
+  }
+
+  for (const powerUp of state.powerUps) {
+    powerUp.y += platformSpeed * deltaSeconds;
+  }
+
+  if (state.player.vy > 0) {
+    const nextBottom = state.player.y + state.player.height;
+    const footLeft = state.player.x + state.player.width * 0.24;
+    const footRight = state.player.x + state.player.width * 0.76;
+
+    for (const platform of state.platforms) {
+      const platformTop = platform.y;
+      const crossesPlatform = previousBottom <= platformTop + 8 && nextBottom >= platformTop - 8;
+      const overlapsPlatform = footRight >= platform.x && footLeft <= platform.x + platform.width;
+
+      if (!crossesPlatform || !overlapsPlatform) {
+        continue;
+      }
+
+      state.player.y = platformTop - state.player.height;
+      state.player.vy = (hasSail ? -970 : -880) - getEndlessDifficulty(state) * 80;
+      state.jumpCount += 1;
+      state.score += 18;
+      break;
+    }
+  }
+
+  for (const coin of state.coins) {
+    if (coin.collected) {
+      continue;
+    }
+
+    const coinCenterX = coin.x + 10;
+    const coinCenterY = coin.y + 10;
+    const overlapsCoin =
+      coinCenterX >= state.player.x &&
+      coinCenterX <= state.player.x + state.player.width &&
+      coinCenterY >= state.player.y &&
+      coinCenterY <= state.player.y + state.player.height;
+
+    if (overlapsCoin) {
+      coin.collected = true;
+      state.score += 65;
+    }
+  }
+
+  for (const powerUp of state.powerUps) {
+    if (powerUp.collected) {
+      continue;
+    }
+
+    const powerCenterX = powerUp.x + ENDLESS_POWERUP_SIZE_PX / 2;
+    const powerCenterY = powerUp.y + ENDLESS_POWERUP_SIZE_PX / 2;
+    const overlapsPower =
+      powerCenterX >= state.player.x &&
+      powerCenterX <= state.player.x + state.player.width &&
+      powerCenterY >= state.player.y &&
+      powerCenterY <= state.player.y + state.player.height;
+
+    if (!overlapsPower) {
+      continue;
+    }
+
+    powerUp.collected = true;
+    state.score += 95;
+
+    if (powerUp.kind === "sail") {
+      state.sailUntil = Math.max(state.sailUntil, nowMs) + 6200;
+      state.statusElement.textContent = "Sail boost!";
+    } else if (powerUp.kind === "magnet") {
+      state.magnetUntil = Math.max(state.magnetUntil, nowMs) + 7200;
+      state.statusElement.textContent = "Coin magnet!";
+    } else {
+      state.rescueCharges = Math.min(state.rescueCharges + 1, 1);
+      state.statusElement.textContent = "Lifebuoy ready.";
+    }
+  }
+
+  for (const platform of state.platforms.filter(
+    (platform) => platform.y > height + ENDLESS_DESPAWN_PADDING_PX,
+  )) {
+    platform.element.remove();
+  }
+
+  for (const coin of state.coins.filter((coin) => coin.y > height + ENDLESS_DESPAWN_PADDING_PX)) {
+    coin.element.remove();
+  }
+
+  for (const powerUp of state.powerUps.filter(
+    (powerUp) => powerUp.y > height + ENDLESS_DESPAWN_PADDING_PX,
+  )) {
+    powerUp.element.remove();
+  }
+
+  state.platforms = state.platforms.filter(
+    (platform) => platform.y <= height + ENDLESS_DESPAWN_PADDING_PX,
+  );
+  state.coins = state.coins.filter((coin) => coin.y <= height + ENDLESS_DESPAWN_PADDING_PX);
+  state.powerUps = state.powerUps.filter(
+    (powerUp) => powerUp.y <= height + ENDLESS_DESPAWN_PADDING_PX,
+  );
+  spawnEndlessPlatforms(state);
+
+  if (state.player.y > height + 24) {
+    if (state.rescueCharges > 0) {
+      rescueEndlessPlayer(state);
+      renderEndlessGame(state);
+      state.animationFrameId = window.requestAnimationFrame((time) => stepEndlessGame(state, time));
+      return;
+    }
+
+    endEndlessGame(state);
+    renderEndlessGame(state);
+    return;
+  }
+
+  renderEndlessGame(state);
+  state.animationFrameId = window.requestAnimationFrame((time) => stepEndlessGame(state, time));
+}
+
+function startEndlessGame(runner: HTMLElement, state: EndlessGameState): void {
+  const runnerRect = runner.getBoundingClientRect();
+
+  state.overlay.hidden = false;
+  state.overlay.setAttribute("aria-hidden", "false");
+  document.documentElement.dataset.spriteEndlessActive = "true";
+  runner.dataset.controlMode = "endless";
+  runner.dataset.gameState = "playing";
+  runner.dataset.motionState = "endless";
+  runner.dataset.state = "endless";
+  runner.setAttribute("aria-label", "Endless Jump is running.");
+  resetEndlessGame(state, runnerRect);
+
+  if (state.animationFrameId !== null) {
+    window.cancelAnimationFrame(state.animationFrameId);
+  }
+
+  state.animationFrameId = window.requestAnimationFrame((time) => stepEndlessGame(state, time));
+}
+
+function toggleEndlessPause(state: EndlessGameState): void {
+  if (!state.active || state.gameOver) {
+    return;
+  }
+
+  state.paused = !state.paused;
+  state.statusElement.textContent = state.paused ? "Paused." : "Use left and right. Land to bounce.";
+
+  if (!state.paused) {
+    state.lastTime = performance.now();
+    state.animationFrameId = window.requestAnimationFrame((time) => stepEndlessGame(state, time));
+  }
+}
+
+function isEndlessOpen(state: EndlessGameState | null): state is EndlessGameState {
+  return state !== null && !state.overlay.hidden;
+}
+
+function createEndlessGame(runner: HTMLElement, payload: SpritePayload): EndlessGameState | null {
+  const shell = runner.closest("[data-sprite-game-shell]");
+  const overlay = shell ? queryHTMLElement(shell, "[data-sprite-endless-overlay]") : null;
+  const field = shell ? queryHTMLElement(shell, "[data-sprite-endless-field]") : null;
+  const platformLayer = shell ? queryHTMLElement(shell, "[data-sprite-endless-platforms]") : null;
+  const coinLayer = shell ? queryHTMLElement(shell, "[data-sprite-endless-coins]") : null;
+  const powerLayer = shell ? queryHTMLElement(shell, "[data-sprite-endless-powerups]") : null;
+  const playerElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-player]") : null;
+  const scoreElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-score]") : null;
+  const bestElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-best]") : null;
+  const speedElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-speed]") : null;
+  const powerElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-power]") : null;
+  const statusElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-status]") : null;
+  const gameOverElement = shell ? queryHTMLElement(shell, "[data-sprite-endless-message]") : null;
+  const messageTitleElement = shell
+    ? queryHTMLElement(shell, "[data-sprite-endless-message-title]")
+    : null;
+  const messageCopyElement = shell
+    ? queryHTMLElement(shell, "[data-sprite-endless-message-copy]")
+    : null;
+  const frameImages = new Map<string, HTMLImageElement>();
+  let activeFrameElement: HTMLImageElement | null = null;
+
+  if (shell) {
+    for (const image of shell.querySelectorAll("[data-sprite-endless-frame-image]")) {
+      if (!(image instanceof HTMLImageElement)) {
+        continue;
+      }
+
+      const frameSet = image.dataset.spriteFrameSet;
+      const frameIndex = Number(image.dataset.spriteFrameIndex);
+
+      if ((frameSet === "default" || frameSet === "walk") && Number.isInteger(frameIndex)) {
+        frameImages.set(getFrameKey(frameSet, frameIndex), image);
+        void image.decode?.().catch(() => undefined);
+
+        if (image.dataset.spriteEndlessFrameActive === "true") {
+          activeFrameElement = image;
+        }
+      }
+    }
+  }
+
+  if (
+    !(
+      overlay &&
+      field &&
+      platformLayer &&
+      coinLayer &&
+      powerLayer &&
+      playerElement &&
+      scoreElement &&
+      bestElement &&
+      speedElement &&
+      powerElement &&
+      statusElement &&
+      gameOverElement &&
+      messageTitleElement &&
+      messageCopyElement &&
+      frameImages.size > 0
+    )
+  ) {
+    return null;
+  }
+
+  const state: EndlessGameState = {
+    active: false,
+    activeFrameElement,
+    animationFrameId: null,
+    bestElement,
+    bestScore: readStoredBestScore(),
+    coinLayer,
+    coins: [],
+    elapsedSeconds: 0,
+    field,
+    frameImages,
+    frames: payload.frames,
+    gameOver: false,
+    gameOverElement,
+    jumpCount: 0,
+    keys: new Set<ControlKey>(),
+    lastFrameAt: performance.now(),
+    lastTime: performance.now(),
+    currentFrameIndex: 0,
+    currentFrameSet: "default",
+    messageCopyElement,
+    messageTitleElement,
+    nextId: 1,
+    overlay,
+    paused: false,
+    platformLayer,
+    platforms: [],
+    player: { height: 72, vx: 0, vy: 0, width: 58, x: 0, y: 0 },
+    playerElement,
+    powerElement,
+    powerLayer,
+    powerUps: [],
+    rescueCharges: 0,
+    score: 0,
+    scoreElement,
+    speedElement,
+    statusElement,
+    magnetUntil: 0,
+    sailUntil: 0,
+    walkFrames: payload.walkFrames,
+  };
+
+  updateEndlessHud(state);
+  return state;
+}
+
 function initSpriteRunner(runner: HTMLButtonElement): void {
   if (runner.dataset.spriteGameReady === "true") {
     return;
@@ -1001,8 +1782,17 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   runner.dataset.spriteReady = "true";
   runner.dataset.spriteGameReady = "true";
   runner.dataset.gameState = "idle";
-  runner.title =
-    "Start Luffy Mini Game. Use Left and Right arrows to move, Up to jump, Down to drop.";
+  runner.title = "Open Luffy Mini Game modes.";
+  const shell = runner.closest("[data-sprite-game-shell]");
+  const modePicker = shell ? queryHTMLElement(shell, "[data-sprite-mode-picker]") : null;
+  const endlessState = createEndlessGame(runner, payload);
+  const pauseButton = shell ? queryHTMLElement(shell, "[data-sprite-endless-pause]") : null;
+  const restartButton = shell ? queryHTMLElement(shell, "[data-sprite-endless-restart]") : null;
+  const closeButton = shell ? queryHTMLElement(shell, "[data-sprite-endless-close]") : null;
+  const stopButton = shell ? queryHTMLElement(shell, "[data-sprite-endless-stop]") : null;
+  const messageRestartButton = shell
+    ? queryHTMLElement(shell, "[data-sprite-endless-message-restart]")
+    : null;
 
   const frameImages = new Map<string, HTMLImageElement>();
 
@@ -1062,7 +1852,68 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   };
 
   runner.addEventListener("click", () => {
-    startGame(runner, state);
+    if (isEndlessOpen(endlessState)) {
+      return;
+    }
+
+    setModePickerOpen(runner, modePicker, modePicker?.hidden ?? true);
+  });
+
+  modePicker?.addEventListener("click", (event) => {
+    const target = event.target;
+
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const choice = target.closest("[data-sprite-mode-choice]");
+
+    if (!(choice instanceof HTMLElement)) {
+      return;
+    }
+
+    const mode = choice.dataset.spriteModeChoice;
+    setModePickerOpen(runner, modePicker, false);
+
+    if (mode === "explore") {
+      if (isEndlessOpen(endlessState)) {
+        stopEndlessGame(runner, endlessState);
+      }
+      startGame(runner, state);
+    } else if (mode === "endless" && endlessState) {
+      pauseGame(runner, state);
+      startEndlessGame(runner, endlessState);
+    }
+  });
+
+  pauseButton?.addEventListener("click", () => {
+    if (endlessState) {
+      toggleEndlessPause(endlessState);
+    }
+  });
+
+  restartButton?.addEventListener("click", () => {
+    if (endlessState) {
+      startEndlessGame(runner, endlessState);
+    }
+  });
+
+  messageRestartButton?.addEventListener("click", () => {
+    if (endlessState) {
+      startEndlessGame(runner, endlessState);
+    }
+  });
+
+  closeButton?.addEventListener("click", () => {
+    if (endlessState) {
+      stopEndlessGame(runner, endlessState);
+    }
+  });
+
+  stopButton?.addEventListener("click", () => {
+    if (endlessState) {
+      stopEndlessGame(runner, endlessState);
+    }
   });
 
   window.addEventListener(
@@ -1084,6 +1935,25 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
       }
 
       event.preventDefault();
+
+      if (isEndlessOpen(endlessState)) {
+        if (controlKey === "escape") {
+          toggleEndlessPause(endlessState);
+          return;
+        }
+
+        if (controlKey === "left" || controlKey === "right") {
+          endlessState.keys.add(controlKey);
+        }
+        return;
+      }
+
+      if (!modePicker?.hidden) {
+        if (controlKey === "escape") {
+          setModePickerOpen(runner, modePicker, false);
+        }
+        return;
+      }
 
       if (controlKey === "escape") {
         pauseGame(runner, state);
@@ -1119,6 +1989,13 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
 
     const controlKey = getControlKey(event.key);
 
+    if (isEndlessOpen(endlessState)) {
+      if (controlKey === "left" || controlKey === "right") {
+        endlessState.keys.delete(controlKey);
+      }
+      return;
+    }
+
     if (controlKey === "left" || controlKey === "right") {
       state.keys.delete(controlKey);
     }
@@ -1129,6 +2006,9 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   document.addEventListener("astro:page-load", markPlatformsDirty);
   document.addEventListener("astro:before-swap", () => {
     pauseGame(runner, state);
+    if (endlessState) {
+      stopEndlessGame(runner, endlessState);
+    }
     clearTextEffectsOutsideLine(state, null);
     clearAllSpriteTextEffects(runner.closest(".container") ?? document);
   });

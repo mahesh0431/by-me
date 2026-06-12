@@ -26,41 +26,127 @@ const spritePayload = {
 };
 ---
 
-<button
-  type="button"
-  class="sprite-overlay"
-  aria-label="Start Luffy Mini Game. Use Up, Down, Left, and Right arrow keys to play."
-  data-sprite-runner
-  data-facing="left"
-  data-state="idle"
-  data-sprite-config={JSON.stringify(spritePayload)}
-  style={`--sprite-scale: ${spritePayload.scale};`}
->
-  <span class="sprite-overlay__prompt" aria-hidden="true">
-    <span class="sprite-overlay__prompt-title">Start Luffy Mini Game</span>
-    <span class="sprite-overlay__prompt-hint">Use Up, Down, Left, Right</span>
-  </span>
-  <span class="sprite-overlay__stage" aria-hidden="true">
-    {
-      frameImages.map((frame) => (
-        <img
-          src={frame.src}
-          alt=""
-          class="sprite-overlay__image"
-          width={spritePayload.imageSize}
-          height={spritePayload.imageSize}
-          loading="eager"
-          decoding="async"
-          data-sprite-frame-active={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : "false"}
-          data-sprite-frame-image
-          data-sprite-frame-index={frame.frameIndex}
-          data-sprite-frame-set={frame.frameSet}
-          data-sprite-image={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : undefined}
-        />
-      ))
-    }
-  </span>
-</button>
+<div class="sprite-game-shell" data-sprite-game-shell>
+  <button
+    type="button"
+    class="sprite-overlay"
+    aria-label="Open Luffy Mini Game modes."
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    data-sprite-runner
+    data-facing="left"
+    data-state="idle"
+    data-sprite-config={JSON.stringify(spritePayload)}
+    style={`--sprite-scale: ${spritePayload.scale};`}
+  >
+    <span class="sprite-overlay__prompt" aria-hidden="true">
+      <span class="sprite-overlay__prompt-title">Choose Luffy Game</span>
+      <span class="sprite-overlay__prompt-hint">Explore or Endless</span>
+    </span>
+    <span class="sprite-overlay__stage" aria-hidden="true">
+      {
+        frameImages.map((frame) => (
+          <img
+            src={frame.src}
+            alt=""
+            class="sprite-overlay__image"
+            width={spritePayload.imageSize}
+            height={spritePayload.imageSize}
+            loading="eager"
+            decoding="async"
+            data-sprite-frame-active={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : "false"}
+            data-sprite-frame-image
+            data-sprite-frame-index={frame.frameIndex}
+            data-sprite-frame-set={frame.frameSet}
+            data-sprite-image={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : undefined}
+          />
+        ))
+      }
+    </span>
+  </button>
+
+  <div class="sprite-mode-picker" role="dialog" aria-label="Choose Luffy game mode" data-sprite-mode-picker hidden>
+    <button type="button" class="sprite-mode-picker__option" data-sprite-mode-choice="explore">
+      <span class="sprite-mode-picker__icon" aria-hidden="true">Aa</span>
+      <span>
+        <span class="sprite-mode-picker__title">Explore</span>
+        <span class="sprite-mode-picker__copy">Jump on page text</span>
+      </span>
+    </button>
+    <button type="button" class="sprite-mode-picker__option" data-sprite-mode-choice="endless">
+      <span class="sprite-mode-picker__icon" aria-hidden="true">↟</span>
+      <span>
+        <span class="sprite-mode-picker__title">Endless Jump</span>
+        <span class="sprite-mode-picker__copy">Arcade survival</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="sprite-endless" role="dialog" aria-label="Endless Jump game" aria-hidden="true" data-sprite-endless-overlay hidden>
+    <section class="sprite-endless__world" data-sprite-endless-world>
+      <header class="sprite-endless__hud">
+        <div class="sprite-endless__metric">
+          <span>Score</span>
+          <strong data-sprite-endless-score>0</strong>
+        </div>
+        <div class="sprite-endless__metric">
+          <span>Best</span>
+          <strong data-sprite-endless-best>0</strong>
+        </div>
+        <div class="sprite-endless__metric">
+          <span>Speed</span>
+          <strong data-sprite-endless-speed>1x</strong>
+        </div>
+        <div class="sprite-endless__metric sprite-endless__metric--power">
+          <span>Power</span>
+          <strong data-sprite-endless-power>None</strong>
+        </div>
+        <div class="sprite-endless__actions">
+          <button type="button" aria-label="Pause Endless Jump" title="Pause" data-sprite-endless-pause>II</button>
+          <button type="button" aria-label="Restart Endless Jump" title="Restart" data-sprite-endless-restart>↻</button>
+          <button type="button" aria-label="Close Endless Jump" title="Close" data-sprite-endless-close>×</button>
+        </div>
+      </header>
+
+      <div class="sprite-endless__field" data-sprite-endless-field>
+        <div class="sprite-endless__platforms" data-sprite-endless-platforms></div>
+        <div class="sprite-endless__coins" data-sprite-endless-coins></div>
+        <div class="sprite-endless__powerups" data-sprite-endless-powerups></div>
+        <div class="sprite-endless__player" data-sprite-endless-player aria-hidden="true">
+          {
+            frameImages.map((frame) => (
+              <img
+                src={frame.src}
+                alt=""
+                class="sprite-endless__player-frame"
+                width={spritePayload.imageSize}
+                height={spritePayload.imageSize}
+                loading="eager"
+                decoding="async"
+                data-sprite-endless-frame-active={frame.frameSet === "default" && frame.frameIndex === 0 ? "true" : "false"}
+                data-sprite-endless-frame-image
+                data-sprite-frame-index={frame.frameIndex}
+                data-sprite-frame-set={frame.frameSet}
+              />
+            ))
+          }
+        </div>
+        <div class="sprite-endless__death-line" aria-hidden="true"></div>
+      </div>
+
+      <div class="sprite-endless__message" data-sprite-endless-message hidden>
+        <strong data-sprite-endless-message-title>Game Over</strong>
+        <span data-sprite-endless-message-copy>Fell into the water.</span>
+        <button type="button" data-sprite-endless-message-restart>Restart</button>
+      </div>
+
+      <footer class="sprite-endless__footer">
+        <span data-sprite-endless-status>Use left and right. Land to bounce.</span>
+        <button type="button" data-sprite-endless-stop>Stop</button>
+      </footer>
+    </section>
+  </div>
+</div>
 
 <script>
   import { initSpriteGame } from "./sprite-game.client";
