@@ -1,5 +1,9 @@
 ---
+import type { BlogSceneYearGroup } from '../components/blog/blog-scene.types';
+
+import BlogScene from '../components/blog/BlogScene.astro';
 import EntryIcon from '../components/ui/EntryIcon.astro';
+import SpriteRunner from '../components/ui/SpriteRunner.astro';
 import { formatDate } from '../lib/dates';
 import { withBasePath } from '../lib/paths';
 import { getProfile } from '../lib/profile';
@@ -12,6 +16,22 @@ const entries = await getSpeakingEntries();
 const archiveGroups = getSpeakingArchiveGroups(entries);
 const pageDescription =
   'Talks, workshops, and events by Mahesh Palavalli on enterprise AI, SAP, SAP BTP, agentic systems, enterprise architecture, and real-world implementation.';
+
+const sceneGroups = archiveGroups.map(({ year, posts }) => ({
+  year,
+  posts: posts.map((entry) => {
+    const slug = getSpeakingRouteSlug(entry);
+    return {
+      slug,
+      url: withBasePath(`/speaking/${slug}/`),
+      title: entry.data.title,
+      description: entry.data.summary,
+      createdIso: entry.data.created.toISOString(),
+      createdLabel: formatDate(entry.data.created),
+      tags: [entry.data.event, entry.data.location].filter((tag): tag is string => Boolean(tag)),
+    };
+  }),
+})) satisfies BlogSceneYearGroup[];
 ---
 
 <BaseLayout
@@ -28,60 +48,63 @@ const pageDescription =
     <span class="section-rule" aria-hidden="true"></span>
   </section>
 
-  {
-    entries.length > 0 ? (
-      <div class="archive-stack">
-        {archiveGroups.map((group) => (
-          <section class="archive-panel surface">
-            <div class="archive-panel__heading">
-              <div>
-                <h2 class="archive-panel__year">{group.year}</h2>
+  <BlogScene groups={sceneGroups}>
+    {
+      entries.length > 0 ? (
+        <div class="archive-stack blog-year-groups" data-sprite-platform-root>
+          {archiveGroups.map((group) => (
+            <section class="archive-panel surface blog-year-group">
+              <div class="archive-panel__heading">
+                <div>
+                  <h2 class="archive-panel__year blog-year-group__title">{group.year}</h2>
+                </div>
+                <p class="archive-panel__count">
+                  {group.posts.length} {group.posts.length === 1 ? 'session' : 'sessions'}
+                </p>
               </div>
-              <p class="archive-panel__count">
-                {group.posts.length} {group.posts.length === 1 ? 'session' : 'sessions'}
-              </p>
-            </div>
 
-            <div class="archive-panel__posts">
-              {group.posts.map((entry) => {
-                const slug = getSpeakingRouteSlug(entry);
-                const href = withBasePath(`/speaking/${slug}/`);
-                return (
-                  <article class="post-card post-card--speaking" id={slug} data-card-href={href}>
-                    <div class="post-card__icon-wrap">
-                      <EntryIcon name="mic" />
-                    </div>
-                    <div class="post-card__body">
-                      <p class="post-card__eyebrow">
-                        <span>{entry.data.event}</span>
-                        <span aria-hidden="true">·</span>
-                        <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
-                        {entry.data.location && (
-                          <>
-                            <span aria-hidden="true">·</span>
-                            <span>{entry.data.location}</span>
-                          </>
-                        )}
-                      </p>
-                      <h2 class="post-card__title">
-                        <a class="post-card__link" href={href}>
-                          {entry.data.title}
-                        </a>
-                      </h2>
-                      <p class="post-card__description">{entry.data.summary}</p>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
-    ) : (
-      <section class="content-card surface">
-        <h2 class="page-title">No speaking notes yet</h2>
-        <p>Talks and sessions will show up here.</p>
-      </section>
-    )
-  }
+              <div class="archive-panel__posts">
+                {group.posts.map((entry) => {
+                  const slug = getSpeakingRouteSlug(entry);
+                  const href = withBasePath(`/speaking/${slug}/`);
+                  return (
+                    <article class="post-card post-card--speaking" id={slug} data-card-href={href}>
+                      <div class="post-card__icon-wrap">
+                        <EntryIcon name="mic" />
+                      </div>
+                      <div class="post-card__body">
+                        <p class="post-card__eyebrow">
+                          <span>{entry.data.event}</span>
+                          <span aria-hidden="true">·</span>
+                          <time datetime={entry.data.created.toISOString()}>{formatDate(entry.data.created)}</time>
+                          {entry.data.location && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span>{entry.data.location}</span>
+                            </>
+                          )}
+                        </p>
+                        <h2 class="post-card__title">
+                          <a class="post-card__link" href={href}>
+                            {entry.data.title}
+                          </a>
+                        </h2>
+                        <p class="post-card__description">{entry.data.summary}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <section class="content-card surface">
+          <h2 class="page-title">No speaking notes yet</h2>
+          <p>Talks and sessions will show up here.</p>
+        </section>
+      )
+    }
+  </BlogScene>
+  {entries.length > 0 && <SpriteRunner />}
 </BaseLayout>

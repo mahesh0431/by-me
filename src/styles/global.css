@@ -1491,27 +1491,32 @@ pre code,
     rotate 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
     text-shadow 120ms ease;
   white-space: pre;
-  will-change: translate, rotate, transform;
 }
 
 .blog-scene-letter[data-sprite-text-pressure="true"],
 .blog-year-group__title[data-sprite-text-pressure="true"],
+.archive-panel__year[data-sprite-text-pressure="true"],
 .archive-panel__count[data-sprite-text-pressure="true"],
+.post-card__eyebrow [data-sprite-text-pressure="true"],
 .post-meta [data-sprite-text-pressure="true"],
 .post-tags [data-sprite-text-pressure="true"],
 .page-heading [data-sprite-text-pressure="true"] {
   translate: 0 var(--sprite-text-pressure-y, 0px);
   rotate: var(--sprite-text-pressure-rotate, 0deg);
   text-shadow: 0 calc(var(--sprite-text-pressure-strength, 0) * 8px) 13px var(--accent-glow);
+  will-change: translate, rotate, transform;
 }
 
 .blog-scene-letter[data-sprite-text-ripple="true"],
 .blog-year-group__title[data-sprite-text-ripple="true"],
+.archive-panel__year[data-sprite-text-ripple="true"],
 .archive-panel__count[data-sprite-text-ripple="true"],
+.post-card__eyebrow [data-sprite-text-ripple="true"],
 .post-meta [data-sprite-text-ripple="true"],
 .post-tags [data-sprite-text-ripple="true"],
 .page-heading [data-sprite-text-ripple="true"] {
   animation: sprite-text-ripple 680ms cubic-bezier(0.18, 0.9, 0.2, 1) var(--sprite-ripple-delay, 0ms) both;
+  will-change: transform;
 }
 
 .blog-scene-line--spacer {

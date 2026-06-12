@@ -159,8 +159,9 @@ function pickLoopFrameIndex(phases: unknown, framesLength: number): number {
   return 0;
 }
 
-function getSpriteShapeRequest(): SpriteShapeRequest | null {
-  const runnerElement = document.querySelector("[data-sprite-runner]");
+function getSpriteShapeRequest(root: HTMLElement): SpriteShapeRequest | null {
+  const rootScope = root.parentElement ?? document;
+  const runnerElement = rootScope.querySelector("[data-sprite-runner]");
 
   if (!(runnerElement instanceof HTMLElement)) {
     return null;
@@ -629,7 +630,7 @@ function renderScene(state: BlogSceneState): void {
 }
 
 async function initializeSpriteShape(state: BlogSceneState): Promise<void> {
-  const request = getSpriteShapeRequest();
+  const request = getSpriteShapeRequest(state.root);
 
   if (!request) {
     state.root.dataset.blogSceneSpriteShape = "unavailable";

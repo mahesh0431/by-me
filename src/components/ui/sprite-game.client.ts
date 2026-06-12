@@ -60,6 +60,7 @@ type SpriteGameState = {
   lastTime: number;
   platforms: TextPlatform[];
   platformsDirty: boolean;
+  pressureTargetCache: WeakMap<HTMLElement, HTMLElement[]>;
   pressuredElements: Set<HTMLElement>;
   rippleElements: Set<HTMLElement>;
   ripplePlatformLine: HTMLElement | null;
@@ -79,6 +80,10 @@ const TEXT_PLATFORM_SELECTOR = [
   "[data-blog-scene-root] .post-meta time",
   "[data-blog-scene-root] .post-meta span",
   "[data-blog-scene-root] .post-tags li",
+  "[data-sprite-platform-root] .archive-panel__year",
+  "[data-sprite-platform-root] .archive-panel__count",
+  "[data-sprite-platform-root] .post-card__eyebrow span",
+  "[data-sprite-platform-root] .post-card__eyebrow time",
   ".page-heading__title",
   ".page-heading__copy",
 ].join(",");
@@ -261,6 +266,12 @@ function closestHTMLElement(element: Element, selector: string): HTMLElement | n
   return match instanceof HTMLElement ? match : null;
 }
 
+function setRunnerData(runner: HTMLElement, key: string, value: string): void {
+  if (runner.dataset[key] !== value) {
+    runner.dataset[key] = value;
+  }
+}
+
 function getTextEffectRoot(element: HTMLElement): HTMLElement {
   return (
     closestHTMLElement(element, "[data-blog-scene-enhanced]") ??
@@ -316,9 +327,10 @@ function ensureBlogSceneLetters(root: HTMLElement): HTMLElement[] {
   );
 }
 
-function collectTextPlatforms(game: SpriteGameConfig): TextPlatform[] {
+function collectTextPlatforms(game: SpriteGameConfig, runner: HTMLElement): TextPlatform[] {
   const platforms: TextPlatform[] = [];
-  const elements = Array.from(document.querySelectorAll(TEXT_PLATFORM_SELECTOR));
+  const platformScope = runner.closest(".container") ?? document;
+  const elements = Array.from(platformScope.querySelectorAll(TEXT_PLATFORM_SELECTOR));
   const lowerBound = window.innerHeight + 260;
 
   for (const element of elements) {
@@ -422,18 +434,27 @@ function getFootSpan(
 function renderRunner(runner: HTMLElement, state: SpriteGameState): void {
   runner.style.setProperty("--sprite-game-x", `${state.x.toFixed(2)}px`);
   runner.style.setProperty("--sprite-game-y", `${state.y.toFixed(2)}px`);
-  runner.dataset.facing = state.facing;
-  runner.dataset.gameGrounded = String(state.grounded);
-  runner.dataset.gamePlatformCount = String(state.platforms.length);
-  runner.dataset.gameTextPlatform =
-    state.currentPlatform?.element.textContent?.trim().slice(0, 80) ?? "";
+  setRunnerData(runner, "facing", state.facing);
+  setRunnerData(runner, "gameGrounded", String(state.grounded));
+  setRunnerData(runner, "gamePlatformCount", String(state.platforms.length));
+  setRunnerData(
+    runner,
+    "gameTextPlatform",
+    state.currentPlatform?.element.textContent?.trim().slice(0, 80) ?? "",
+  );
 }
 
 function getFrameKey(frameSetName: SpriteFrameSetName, frameIndex: number): string {
   return `${frameSetName}:${frameIndex}`;
 }
 
-function getTextPressureTargets(platform: TextPlatform): HTMLElement[] {
+function getTextPressureTargets(state: SpriteGameState, platform: TextPlatform): HTMLElement[] {
+  const cachedTargets = state.pressureTargetCache.get(platform.lineElement);
+
+  if (cachedTargets?.every((element) => element.isConnected)) {
+    return cachedTargets;
+  }
+
   let lineLetters = Array.from(
     platform.lineElement.querySelectorAll(".blog-scene-letter"),
   ).filter((element): element is HTMLElement => element instanceof HTMLElement);
@@ -443,10 +464,13 @@ function getTextPressureTargets(platform: TextPlatform): HTMLElement[] {
   }
 
   if (lineLetters.length > 0) {
+    state.pressureTargetCache.set(platform.lineElement, lineLetters);
     return lineLetters;
   }
 
-  return [platform.element];
+  const fallbackTargets = [platform.element];
+  state.pressureTargetCache.set(platform.lineElement, fallbackTargets);
+  return fallbackTargets;
 }
 
 function resetTextPressureElement(element: HTMLElement): void {
@@ -484,8 +508,10 @@ function clearTextEffectsOutsideLine(
       state.rippleElements.delete(element);
     }
   }
+}
 
-  const activeElements = document.querySelectorAll(
+function clearAllSpriteTextEffects(scope: ParentNode = document): void {
+  const activeElements = scope.querySelectorAll(
     '[data-sprite-text-pressure="true"], [data-sprite-text-ripple="true"]',
   );
 
@@ -494,14 +520,8 @@ function clearTextEffectsOutsideLine(
       continue;
     }
 
-    if (lineElement && isElementInTextLine(element, lineElement)) {
-      continue;
-    }
-
     resetTextPressureElement(element);
     resetTextRippleElement(element);
-    state.pressuredElements.delete(element);
-    state.rippleElements.delete(element);
   }
 }
 
@@ -531,7 +551,7 @@ function applyTextPressure(runner: HTMLElement, state: SpriteGameState): void {
 
   const { width } = getRunnerSize(runner);
   const footCenterX = state.x + width / 2;
-  const targets = getTextPressureTargets(platform);
+  const targets = getTextPressureTargets(state, platform);
   const horizontalRadius = Math.max(34, width * 0.34);
   const nextPressure = new Map<HTMLElement, { rotate: string; strength: string; y: string }>();
 
@@ -604,7 +624,7 @@ function triggerTextRipple(
     return;
   }
 
-  const targets = getTextPressureTargets(platform);
+  const targets = getTextPressureTargets(state, platform);
 
   if (targets.length === 0) {
     return;
@@ -722,7 +742,7 @@ function getBottomFloorTop(): number {
 }
 
 function spawnAtBottom(runner: HTMLElement, state: SpriteGameState): boolean {
-  state.platforms = collectTextPlatforms(state.game);
+  state.platforms = collectTextPlatforms(state.game, runner);
   state.platformsDirty = false;
 
   const { height, width } = getRunnerSize(runner);
@@ -790,7 +810,7 @@ function stepPhysics(
   deltaSeconds: number,
 ): void {
   if (state.platformsDirty || hasDisconnectedPlatforms(state.platforms)) {
-    state.platforms = collectTextPlatforms(state.game);
+    state.platforms = collectTextPlatforms(state.game, runner);
     state.platformsDirty = false;
   }
 
@@ -902,7 +922,7 @@ function stepPhysics(
 }
 
 function startGame(runner: HTMLElement, state: SpriteGameState): void {
-  if (state.active) {
+  if (state.active || !runner.isConnected) {
     return;
   }
 
@@ -926,6 +946,12 @@ function startGame(runner: HTMLElement, state: SpriteGameState): void {
 
   const tick = (time: number) => {
     if (!state.active) {
+      return;
+    }
+
+    if (!runner.isConnected) {
+      pauseGame(runner, state);
+      clearTextEffectsOutsideLine(state, null);
       return;
     }
 
@@ -1018,6 +1044,7 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     lastTime: performance.now(),
     platforms: [],
     platformsDirty: true,
+    pressureTargetCache: new WeakMap<HTMLElement, HTMLElement[]>(),
     pressuredElements: new Set<HTMLElement>(),
     rippleElements: new Set<HTMLElement>(),
     ripplePlatformLine: null,
@@ -1041,6 +1068,11 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   window.addEventListener(
     "keydown",
     (event) => {
+      if (!runner.isConnected) {
+        pauseGame(runner, state);
+        return;
+      }
+
       if (isEditableTarget(event.target)) {
         return;
       }
@@ -1080,6 +1112,11 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   );
 
   window.addEventListener("keyup", (event) => {
+    if (!runner.isConnected) {
+      pauseGame(runner, state);
+      return;
+    }
+
     const controlKey = getControlKey(event.key);
 
     if (controlKey === "left" || controlKey === "right") {
@@ -1090,6 +1127,11 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   window.addEventListener("scroll", markPlatformsDirty, { passive: true });
   window.addEventListener("resize", markPlatformsDirty);
   document.addEventListener("astro:page-load", markPlatformsDirty);
+  document.addEventListener("astro:before-swap", () => {
+    pauseGame(runner, state);
+    clearTextEffectsOutsideLine(state, null);
+    clearAllSpriteTextEffects(runner.closest(".container") ?? document);
+  });
 
   if ("fonts" in document) {
     void document.fonts.ready.then(markPlatformsDirty);
