@@ -18,8 +18,11 @@ type SpriteGameConfig = {
 };
 
 type SpritePayload = {
+  fallFrames: SpriteFrame[];
   frames: SpriteFrame[];
   game: SpriteGameConfig;
+  jumpFrames: SpriteFrame[];
+  landFrames: SpriteFrame[];
   walkFrames: SpriteFrame[];
 };
 
@@ -35,7 +38,7 @@ type TextPlatform = {
 
 type ControlKey = "left" | "right";
 type ControlAction = ControlKey | "jump" | "down" | "escape";
-type SpriteFrameSetName = "default" | "walk";
+type SpriteFrameSetName = "default" | "fall" | "jump" | "land" | "walk";
 
 type SpriteGameState = {
   active: boolean;
@@ -49,12 +52,16 @@ type SpriteGameState = {
   dropThroughPlatformTop: number | null;
   dropThroughUntil: number;
   facing: "left" | "right";
+  fallFrames: SpriteFrame[];
   frames: SpriteFrame[];
   game: SpriteGameConfig;
   grounded: boolean;
   hasSpawned: boolean;
+  jumpFrames: SpriteFrame[];
   jumpQueuedUntil: number;
   keys: Set<ControlKey>;
+  landFrameUntil: number;
+  landFrames: SpriteFrame[];
   lastFrameAt: number;
   lastGroundedAt: number;
   lastTime: number;
@@ -110,6 +117,7 @@ const BOTTOM_FLOOR_GAP_PX = 38;
 const LANDING_RIPPLE_MIN_VELOCITY = 0;
 const TEXT_RIPPLE_DURATION_MS = 760;
 const VIEWPORT_PADDING_PX = 6;
+const VIEWPORT_TOP_PADDING_PX = 18;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -147,10 +155,16 @@ function parseSpritePayload(value: string): SpritePayload | null {
   }
 
   const walkFrames = parseFrameList(parsed.walkFrames);
+  const jumpFrames = parseFrameList(parsed.jumpFrames);
+  const fallFrames = parseFrameList(parsed.fallFrames);
+  const landFrames = parseFrameList(parsed.landFrames);
 
   return {
+    fallFrames: fallFrames.length > 0 ? fallFrames : frames,
     frames,
     game: normalizeGameConfig(parsed.game),
+    jumpFrames: jumpFrames.length > 0 ? jumpFrames : frames,
+    landFrames: landFrames.length > 0 ? landFrames : frames,
     walkFrames: walkFrames.length > 0 ? walkFrames : frames,
   };
 }
@@ -332,6 +346,8 @@ function collectTextPlatforms(game: SpriteGameConfig, runner: HTMLElement): Text
   const platformScope = runner.closest(".container") ?? document;
   const elements = Array.from(platformScope.querySelectorAll(TEXT_PLATFORM_SELECTOR));
   const lowerBound = window.innerHeight + 260;
+  const { height } = getRunnerSize(runner);
+  const minimumPlatformTop = height * game.footHeightRatio + VIEWPORT_TOP_PADDING_PX;
 
   for (const element of elements) {
     if (!(element instanceof HTMLElement)) {
@@ -345,7 +361,13 @@ function collectTextPlatforms(game: SpriteGameConfig, runner: HTMLElement): Text
     }
 
     for (const rect of getPlatformRects(element)) {
-      if (rect.width < 10 || rect.height < 5 || rect.bottom < -160 || rect.top > lowerBound) {
+      if (
+        rect.width < 10 ||
+        rect.height < 5 ||
+        rect.bottom < -160 ||
+        rect.top < minimumPlatformTop ||
+        rect.top > lowerBound
+      ) {
         continue;
       }
 
@@ -446,6 +468,22 @@ function renderRunner(runner: HTMLElement, state: SpriteGameState): void {
 
 function getFrameKey(frameSetName: SpriteFrameSetName, frameIndex: number): string {
   return `${frameSetName}:${frameIndex}`;
+}
+
+function getFrameSet(state: SpriteGameState, frameSetName: SpriteFrameSetName): SpriteFrame[] {
+  switch (frameSetName) {
+    case "fall":
+      return state.fallFrames;
+    case "jump":
+      return state.jumpFrames;
+    case "land":
+      return state.landFrames;
+    case "walk":
+      return state.walkFrames;
+    case "default":
+    default:
+      return state.frames;
+  }
 }
 
 function getTextPressureTargets(state: SpriteGameState, platform: TextPlatform): HTMLElement[] {
@@ -679,7 +717,7 @@ function showFrame(
   frameSetName: SpriteFrameSetName,
   frameIndex: number,
 ): void {
-  const frameSet = frameSetName === "walk" ? state.walkFrames : state.frames;
+  const frameSet = getFrameSet(state, frameSetName);
   const nextFrameIndex = clamp(frameIndex, 0, frameSet.length - 1);
   const nextImage = state.frameImages.get(getFrameKey(frameSetName, nextFrameIndex));
 
@@ -700,16 +738,43 @@ function showFrame(
 
 function updateFrame(state: SpriteGameState, now: number): void {
   if (!state.grounded) {
-    showFrame(
-      state,
-      "default",
-      state.vy < 0 ? Math.min(2, state.frames.length - 1) : state.frames.length - 1,
+    const airborneSetName: SpriteFrameSetName = state.vy < 120 ? "jump" : "fall";
+    const airborneFrames = getFrameSet(state, airborneSetName);
+    const progress =
+      airborneSetName === "jump"
+        ? clamp(1 - Math.abs(state.vy) / state.game.jumpVelocityPxPerSecond, 0, 1)
+        : clamp(state.vy / state.game.maxFallPxPerSecond, 0, 1);
+    const frameIndex = Math.min(
+      airborneFrames.length - 1,
+      Math.floor(progress * airborneFrames.length),
     );
+
+    showFrame(state, airborneSetName, frameIndex);
+    return;
+  }
+
+  if (now < state.landFrameUntil) {
+    const landElapsed = Math.max(0, state.landFrameUntil - now);
+    const landFrames = getFrameSet(state, "land");
+    const frameIndex = landElapsed > 70 ? 0 : Math.min(1, landFrames.length - 1);
+
+    showFrame(state, "land", frameIndex);
     return;
   }
 
   if (Math.abs(state.vx) < 12) {
-    showFrame(state, "default", 0);
+    const holdMs = Math.max(state.frames[state.currentFrameIndex]?.holdMs ?? 220, 90);
+
+    if (state.currentFrameSet !== "default") {
+      state.lastFrameAt = now;
+      showFrame(state, "default", 0);
+      return;
+    }
+
+    if (now - state.lastFrameAt >= holdMs) {
+      state.lastFrameAt = now;
+      showFrame(state, "default", (state.currentFrameIndex + 1) % state.frames.length);
+    }
     return;
   }
 
@@ -763,6 +828,7 @@ function spawnAtBottom(runner: HTMLElement, state: SpriteGameState): boolean {
   state.currentPlatformTop = floorTop;
   state.dropThroughPlatformTop = null;
   state.dropThroughUntil = 0;
+  state.landFrameUntil = 0;
   state.lastGroundedAt = performance.now();
   return true;
 }
@@ -858,6 +924,11 @@ function stepPhysics(
   let landingPlatform: TextPlatform | null = null;
   let landingVelocity = 0;
 
+  if (nextY < VIEWPORT_TOP_PADDING_PX) {
+    nextY = VIEWPORT_TOP_PADDING_PX;
+    state.vy = Math.max(state.vy, 0);
+  }
+
   if (state.vy >= 0) {
     const footSpan = getFootSpan(state, nextX, width);
     const nextFootY = nextY + height * state.game.footHeightRatio;
@@ -891,6 +962,7 @@ function stepPhysics(
 
     if (!nextGrounded && nextFootY >= getBottomFloorTop()) {
       const floorTop = getBottomFloorTop();
+      landingVelocity = state.vy;
       nextY = floorTop - height * state.game.footHeightRatio;
       state.vy = 0;
       nextGrounded = true;
@@ -914,6 +986,10 @@ function stepPhysics(
     triggerTextRipple(state, landingPlatform, nextX + width / 2, landingVelocity);
   }
 
+  if (!wasGrounded && nextGrounded && landingVelocity > 160) {
+    state.landFrameUntil = now + clamp(landingVelocity / 7, 120, 220);
+  }
+
   if (state.y > window.innerHeight + height * 0.35) {
     state.hasSpawned = spawnAtBottom(runner, state);
   }
@@ -934,7 +1010,7 @@ function startGame(runner: HTMLElement, state: SpriteGameState): void {
   runner.dataset.gameState = "playing";
   runner.setAttribute(
     "aria-label",
-    "Playable Luffy mini game. Use Left and Right arrow keys to move, Up to jump, Down to drop, Escape to pause.",
+    "Playable Mahesh mini game. Use Left and Right arrow keys to move, Up to jump, Down to drop, Escape to pause.",
   );
 
   if (!state.hasSpawned) {
@@ -1002,7 +1078,7 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   runner.dataset.spriteGameReady = "true";
   runner.dataset.gameState = "idle";
   runner.title =
-    "Start Luffy Mini Game. Use Left and Right arrows to move, Up to jump, Down to drop.";
+    "Start Mahesh Mini Game. Use Left and Right arrows to move, Up to jump, Down to drop.";
 
   const frameImages = new Map<string, HTMLImageElement>();
 
@@ -1014,7 +1090,14 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     const frameSet = image.dataset.spriteFrameSet;
     const frameIndex = Number(image.dataset.spriteFrameIndex);
 
-    if ((frameSet === "default" || frameSet === "walk") && Number.isInteger(frameIndex)) {
+    if (
+      (frameSet === "default" ||
+        frameSet === "walk" ||
+        frameSet === "jump" ||
+        frameSet === "fall" ||
+        frameSet === "land") &&
+      Number.isInteger(frameIndex)
+    ) {
       frameImages.set(getFrameKey(frameSet, frameIndex), image);
       void image.decode?.().catch(() => undefined);
     }
@@ -1033,12 +1116,16 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     dropThroughPlatformTop: null,
     dropThroughUntil: 0,
     facing: "left",
+    fallFrames: payload.fallFrames,
     frames: payload.frames,
     game: payload.game,
     grounded: false,
     hasSpawned: false,
+    jumpFrames: payload.jumpFrames,
     jumpQueuedUntil: 0,
     keys: new Set<ControlKey>(),
+    landFrameUntil: 0,
+    landFrames: payload.landFrames,
     lastFrameAt: performance.now(),
     lastGroundedAt: 0,
     lastTime: performance.now(),

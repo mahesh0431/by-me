@@ -10,9 +10,24 @@ const walkFrames = blogSpriteConfig.walkFrames.map((frame) => ({
   holdMs: frame.holdMs,
   src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
 }));
+const jumpFrames = blogSpriteConfig.jumpFrames.map((frame) => ({
+  holdMs: frame.holdMs,
+  src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
+}));
+const fallFrames = blogSpriteConfig.fallFrames.map((frame) => ({
+  holdMs: frame.holdMs,
+  src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
+}));
+const landFrames = blogSpriteConfig.landFrames.map((frame) => ({
+  holdMs: frame.holdMs,
+  src: withBasePath(`${frame.path}?v=${blogSpriteConfig.version}`),
+}));
 const frameImages = [
   ...frames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "default" as const })),
   ...walkFrames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "walk" as const })),
+  ...jumpFrames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "jump" as const })),
+  ...fallFrames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "fall" as const })),
+  ...landFrames.map((frame, index) => ({ ...frame, frameIndex: index, frameSet: "land" as const })),
 ];
 const spritePayload = {
   imageSize: blogSpriteConfig.imageSize,
@@ -22,6 +37,9 @@ const spritePayload = {
   shape: blogSpriteConfig.shape,
   frames,
   walkFrames,
+  jumpFrames,
+  fallFrames,
+  landFrames,
   phases: blogSpriteConfig.phases,
 };
 ---
@@ -29,7 +47,7 @@ const spritePayload = {
 <button
   type="button"
   class="sprite-overlay"
-  aria-label="Start Luffy Mini Game. Use Up, Down, Left, and Right arrow keys to play."
+  aria-label="Start Mahesh Mini Game. Use Up, Down, Left, and Right arrow keys to play."
   data-sprite-runner
   data-facing="left"
   data-state="idle"
@@ -37,7 +55,7 @@ const spritePayload = {
   style={`--sprite-scale: ${spritePayload.scale};`}
 >
   <span class="sprite-overlay__prompt" aria-hidden="true">
-    <span class="sprite-overlay__prompt-title">Start Luffy Mini Game</span>
+    <span class="sprite-overlay__prompt-title">Start Mahesh Mini Game</span>
     <span class="sprite-overlay__prompt-hint">Use Up, Down, Left, Right</span>
   </span>
   <span class="sprite-overlay__stage" aria-hidden="true">

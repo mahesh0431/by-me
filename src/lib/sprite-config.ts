@@ -36,9 +36,12 @@ export interface SpriteShapeConfig {
 }
 
 export interface SpriteAnimationConfig {
+  fallFrames: SpriteFrameConfig[];
   frames: SpriteFrameConfig[];
   game: SpriteGameConfig;
   imageSize: number;
+  jumpFrames: SpriteFrameConfig[];
+  landFrames: SpriteFrameConfig[];
   motion: SpriteMotionConfig;
   scale: number;
   shape: SpriteShapeConfig;
@@ -62,27 +65,27 @@ export interface SpriteGameConfig {
 }
 
 export const blogSpriteConfig: SpriteAnimationConfig = {
-  version: "pirate-walk-2",
+  version: "mahesh-sprite-face-ref-v4-idle-order-speed08-1",
   imageSize: 256,
   // Multiply the on-page sprite footprint by this value. `0.5` means 50% of the default size.
-  scale: 0.7,
+  scale: 0.72,
   game: {
-    bodyWidthRatio: 0.38,
-    footHeightRatio: 0.82,
+    bodyWidthRatio: 0.34,
+    footHeightRatio: 0.86,
     gravityPxPerSecondSquared: 2200,
     horizontalForgivenessPx: 10,
     jumpVelocityPxPerSecond: 760,
     maxFallPxPerSecond: 1500,
-    moveAccelerationPxPerSecondSquared: 2800,
-    moveFrictionPxPerSecondSquared: 3200,
-    moveSpeedPxPerSecond: 360,
+    moveAccelerationPxPerSecondSquared: 2240,
+    moveFrictionPxPerSecondSquared: 2560,
+    moveSpeedPxPerSecond: 288,
     platformVerticalForgivenessPx: 9,
     spawnViewportXRatio: 0.68,
   },
   motion: {
     horizontalDriftRatio: 0.42,
-    rotationMaxDegPerSecond: 140,
-    speedPxPerSecond: 110,
+    rotationMaxDegPerSecond: 112,
+    speedPxPerSecond: 88,
     targetOffsetPx: 24,
     targetSelector: ".blog-year-groups",
     topSafetyPx: 88,
@@ -98,23 +101,38 @@ export const blogSpriteConfig: SpriteAnimationConfig = {
     smoothRadius: 5,
     verticalPaddingRatio: 0.03,
   },
-  // Edit `holdMs` to control how long each frame stays visible in the first full run.
+  // Idle reads better as a small personality beat: neutral, chill, excited, thumbs-up, hello.
   frames: [
-    { path: "/images/pirate-bounce-candidates/variant-3/frames/frame-01.png", holdMs: 560 },
-    { path: "/images/pirate-bounce-candidates/variant-3/frames/frame-02.png", holdMs: 240 },
-    { path: "/images/pirate-bounce-candidates/variant-3/frames/frame-03.png", holdMs: 320 },
-    { path: "/images/pirate-bounce-candidates/variant-3/frames/frame-04.png", holdMs: 420 },
+    { path: "/images/mahesh-sprite/frames/frame-06.png", holdMs: 1225 },
+    { path: "/images/mahesh-sprite/frames/frame-04.png", holdMs: 1100 },
+    { path: "/images/mahesh-sprite/frames/frame-03.png", holdMs: 800 },
+    { path: "/images/mahesh-sprite/frames/frame-02.png", holdMs: 950 },
+    { path: "/images/mahesh-sprite/frames/frame-01.png", holdMs: 900 },
   ],
   walkFrames: [
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-01.png", holdMs: 92 },
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-02.png", holdMs: 92 },
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-03.png", holdMs: 92 },
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-04.png", holdMs: 92 },
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-05.png", holdMs: 92 },
-    { path: "/images/pirate-bounce-candidates/variant-3/walk/frames/frame-06.png", holdMs: 92 },
+    { path: "/images/mahesh-sprite/run/frame-01.png", holdMs: 95 },
+    { path: "/images/mahesh-sprite/run/frame-02.png", holdMs: 95 },
+    { path: "/images/mahesh-sprite/run/frame-03.png", holdMs: 95 },
+    { path: "/images/mahesh-sprite/run/frame-04.png", holdMs: 95 },
+    { path: "/images/mahesh-sprite/run/frame-05.png", holdMs: 95 },
+    { path: "/images/mahesh-sprite/run/frame-06.png", holdMs: 95 },
+  ],
+  jumpFrames: [
+    { path: "/images/mahesh-sprite/jump/frame-01.png", holdMs: 80 },
+    { path: "/images/mahesh-sprite/jump/frame-02.png", holdMs: 90 },
+    { path: "/images/mahesh-sprite/jump/frame-03.png", holdMs: 110 },
+    { path: "/images/mahesh-sprite/jump/frame-04.png", holdMs: 110 },
+  ],
+  fallFrames: [
+    { path: "/images/mahesh-sprite/fall/frame-01.png", holdMs: 120 },
+    { path: "/images/mahesh-sprite/fall/frame-02.png", holdMs: 120 },
+  ],
+  landFrames: [
+    { path: "/images/mahesh-sprite/land/frame-01.png", holdMs: 90 },
+    { path: "/images/mahesh-sprite/land/frame-02.png", holdMs: 110 },
   ],
   // Phases are zero-based frame indexes. The runner plays them in order.
   phases: [
-    { frameIndexes: [0, 1, 2, 3, 1], holdMs: [560, 240, 320, 420, 260], repeat: "infinite" },
+    { frameIndexes: [0, 1, 2, 3, 4], holdMs: [1225, 1100, 800, 950, 900], repeat: "infinite" },
   ],
 };
