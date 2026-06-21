@@ -18,6 +18,7 @@ type BlogScenePostState = {
   post: BlogScenePost;
   preparedDescription: PreparedTextWithSegments;
   preparedTitle: PreparedTextWithSegments;
+  supportingTextStates: BlogSceneTextState[];
   titleBlockElement: HTMLElement;
   titleElement: HTMLAnchorElement;
 };
@@ -27,7 +28,14 @@ type BlogSceneState = {
   postStates: BlogScenePostState[];
   root: HTMLElement;
   spriteShape?: BlogSceneSpriteShapeState;
-  yearHeadingElements: HTMLHeadingElement[];
+  supportingTextStates: BlogSceneTextState[];
+};
+
+type BlogSceneTextState = {
+  element: HTMLElement;
+  layoutBoxElement: HTMLElement;
+  lineClassName: string;
+  prepared: PreparedTextWithSegments;
 };
 
 type BlogSceneSpriteShapeState = {
@@ -79,12 +87,22 @@ type RenderFragment = {
 
 const sceneStates = new WeakMap<HTMLElement, BlogSceneState>();
 const sceneRoots = new Set<HTMLElement>();
+const ROOT_SUPPORTING_TEXT_SELECTOR = [
+  ".archive-panel__count",
+  ".post-meta time",
+  ".post-meta span",
+  ".post-tags li",
+  ".post-card__eyebrow span:not([aria-hidden='true'])",
+  ".post-card__eyebrow time",
+].join(",");
 
 let activeLocale: string | null = null;
 let didBindResize = false;
+let didBindRouteCleanup = false;
 let resizeFrameId: number | null = null;
 let spriteMotionFrameId: number | null = null;
 let textMeasureContext: CanvasRenderingContext2D | null = null;
+const spriteMotionObservers = new Set<MutationObserver>();
 
 function syncLocale(): void {
   const nextLocale = document.documentElement.lang || navigator.language || null;
@@ -228,8 +246,62 @@ function getDescriptionElement(cardElement: HTMLElement): HTMLParagraphElement |
   return null;
 }
 
+function getBlogSceneSourceText(element: HTMLElement): string {
+  const existingSourceText = element.dataset.blogSceneSourceText;
+
+  if (existingSourceText !== undefined) {
+    return existingSourceText;
+  }
+
+  const sourceText = (element.textContent ?? "").trim();
+  element.dataset.blogSceneSourceText = sourceText;
+  return sourceText;
+}
+
+function getSupportingTextLineClassName(element: HTMLElement): string {
+  if (element.classList.contains("archive-panel__count")) {
+    return "blog-scene-line--archive-meta";
+  }
+
+  return "blog-scene-line--supporting";
+}
+
+function createSupportingTextState(element: HTMLElement): BlogSceneTextState | null {
+  const sourceText = getBlogSceneSourceText(element);
+
+  if (sourceText.length === 0) {
+    return null;
+  }
+
+  return {
+    element,
+    layoutBoxElement: element,
+    lineClassName: getSupportingTextLineClassName(element),
+    prepared: prepareWithSegments(sourceText, getTextFont(window.getComputedStyle(element))),
+  };
+}
+
+function collectSupportingTextStates(scope: ParentNode): BlogSceneTextState[] {
+  const states: BlogSceneTextState[] = [];
+  const elements = Array.from(scope.querySelectorAll(ROOT_SUPPORTING_TEXT_SELECTOR));
+
+  for (const element of elements) {
+    if (!(element instanceof HTMLElement) || element.getAttribute("aria-hidden") === "true") {
+      continue;
+    }
+
+    const state = createSupportingTextState(element);
+
+    if (state) {
+      states.push(state);
+    }
+  }
+
+  return states;
+}
+
 function getRenderWidth(element: HTMLElement): number {
-  return Math.max(element.getBoundingClientRect().width, 1);
+  return Math.max(Math.ceil(element.getBoundingClientRect().width) + 1, 1);
 }
 
 function getTextMeasureContext(): CanvasRenderingContext2D | null {
@@ -573,7 +645,35 @@ function renderPreparedLines(
   element.replaceChildren(fragment);
   element.dataset.blogSceneEnhanced = "true";
   element.dataset.blogSceneSplitLines = String(splitLineCount);
+  element.style.setProperty("--blog-scene-text-width", `${maxWidth}px`);
   return exclusionLineCount;
+}
+
+function renderTextState(
+  textState: BlogSceneTextState,
+  spriteContext: SpriteLayoutContext | null,
+): number {
+  return renderPreparedLines(
+    textState.element,
+    textState.prepared,
+    getRenderWidth(textState.layoutBoxElement),
+    textState.lineClassName,
+    textState.layoutBoxElement,
+    spriteContext,
+  );
+}
+
+function getTextStateSpriteContext(
+  textState: BlogSceneTextState,
+  spriteContext: SpriteLayoutContext | null,
+): SpriteLayoutContext | null {
+  if (!spriteContext) {
+    return null;
+  }
+
+  return rectsOverlap(textState.layoutBoxElement.getBoundingClientRect(), spriteContext.boundsRect, 80)
+    ? spriteContext
+    : null;
 }
 
 function renderScene(state: BlogSceneState): void {
@@ -581,6 +681,16 @@ function renderScene(state: BlogSceneState): void {
   let activeCardCount = 0;
   let activeLineCount = 0;
   let splitLineCount = 0;
+
+  for (const textState of state.supportingTextStates) {
+    const textExclusionCount = renderTextState(
+      textState,
+      getTextStateSpriteContext(textState, spriteContext),
+    );
+
+    activeLineCount += textExclusionCount;
+    splitLineCount += Number(textState.element.dataset.blogSceneSplitLines ?? 0);
+  }
 
   for (const postState of state.postStates) {
     const shouldUseSpriteContext =
@@ -603,17 +713,26 @@ function renderScene(state: BlogSceneState): void {
       postState.descriptionElement,
       lineSpriteContext,
     );
-    const cardLineCount = titleExclusionCount + descriptionExclusionCount;
+    let cardLineCount = titleExclusionCount + descriptionExclusionCount;
     const cardSplitLineCount =
       Number(postState.titleElement.dataset.blogSceneSplitLines ?? 0) +
       Number(postState.descriptionElement.dataset.blogSceneSplitLines ?? 0);
 
+    let supportingSplitLineCount = 0;
+
+    for (const textState of postState.supportingTextStates) {
+      cardLineCount += renderTextState(textState, lineSpriteContext);
+      supportingSplitLineCount += Number(textState.element.dataset.blogSceneSplitLines ?? 0);
+    }
+
     if (cardLineCount > 0) {
       activeCardCount += 1;
       activeLineCount += cardLineCount;
-      splitLineCount += cardSplitLineCount;
+      splitLineCount += cardSplitLineCount + supportingSplitLineCount;
       postState.cardElement.dataset.blogSceneCardFlowState = "sprite";
-      postState.cardElement.dataset.blogSceneCardSplitLines = String(cardSplitLineCount);
+      postState.cardElement.dataset.blogSceneCardSplitLines = String(
+        cardSplitLineCount + supportingSplitLineCount,
+      );
     } else {
       postState.cardElement.dataset.blogSceneCardFlowState = "resting";
       postState.cardElement.dataset.blogSceneCardSplitLines = "0";
@@ -642,6 +761,11 @@ async function initializeSpriteShape(state: BlogSceneState): Promise<void> {
 
   try {
     const hull = await buildSpriteAlphaHull(request.src, request.options);
+
+    if (!state.root.isConnected || !request.runnerElement.isConnected) {
+      return;
+    }
+
     const spriteShape = {
       frameIndex: request.frameIndex,
       hull,
@@ -725,6 +849,7 @@ function createSceneState(root: HTMLElement, groups: BlogSceneYearGroup[]): Blog
       descriptionElement,
       preparedTitle: prepareWithSegments(post.title, getTextFont(titleStyle)),
       preparedDescription: prepareWithSegments(post.description, getTextFont(descriptionStyle)),
+      supportingTextStates: collectSupportingTextStates(cardElement),
     });
   }
 
@@ -732,8 +857,8 @@ function createSceneState(root: HTMLElement, groups: BlogSceneYearGroup[]): Blog
     root,
     groups,
     postStates,
-    yearHeadingElements: Array.from(root.querySelectorAll(".blog-year-group__title")).filter(
-      (element): element is HTMLHeadingElement => element instanceof HTMLHeadingElement,
+    supportingTextStates: collectSupportingTextStates(root).filter(
+      (textState) => !textState.element.closest(".post-card"),
     ),
   };
 }
@@ -753,6 +878,25 @@ function renderAllScenes(): void {
 
     renderScene(state);
   }
+}
+
+function cleanupBlogScenes(): void {
+  if (resizeFrameId !== null) {
+    window.cancelAnimationFrame(resizeFrameId);
+    resizeFrameId = null;
+  }
+
+  if (spriteMotionFrameId !== null) {
+    window.cancelAnimationFrame(spriteMotionFrameId);
+    spriteMotionFrameId = null;
+  }
+
+  for (const observer of spriteMotionObservers) {
+    observer.disconnect();
+  }
+
+  spriteMotionObservers.clear();
+  sceneRoots.clear();
 }
 
 function scheduleSpriteMotionRendering(): void {
@@ -810,6 +954,7 @@ function bindSpriteMotionRendering(runnerElement: HTMLElement): void {
   });
 
   observer.observe(runnerElement, { attributeFilter: ["data-motion-state"] });
+  spriteMotionObservers.add(observer);
 }
 
 function bindResizeHandler(): void {
@@ -830,6 +975,15 @@ function bindResizeHandler(): void {
   });
 }
 
+function bindRouteCleanup(): void {
+  if (didBindRouteCleanup) {
+    return;
+  }
+
+  didBindRouteCleanup = true;
+  document.addEventListener("astro:before-swap", cleanupBlogScenes);
+}
+
 async function initializeSceneRoot(sceneRoot: HTMLElement): Promise<void> {
   const groups = parseSceneGroups(sceneRoot);
 
@@ -839,6 +993,11 @@ async function initializeSceneRoot(sceneRoot: HTMLElement): Promise<void> {
   }
 
   await document.fonts.ready;
+
+  if (!sceneRoot.isConnected) {
+    delete sceneRoot.dataset.blogSceneReady;
+    return;
+  }
 
   const state = createSceneState(sceneRoot, groups);
 
@@ -863,6 +1022,7 @@ export function initBlogScenes(): void {
 
   syncLocale();
   bindResizeHandler();
+  bindRouteCleanup();
 
   for (const sceneRoot of sceneRoots) {
     if (

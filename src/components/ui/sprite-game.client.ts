@@ -36,6 +36,24 @@ type TextPlatform = {
   top: number;
 };
 
+type RunnerSize = {
+  height: number;
+  width: number;
+};
+
+type TextPressureTargetMetric = {
+  centerDocumentX: number;
+  centerDocumentY: number;
+  element: HTMLElement;
+  height: number;
+  width: number;
+};
+
+type TextPressureTargetMetricCache = {
+  targets: TextPressureTargetMetric[];
+  version: number;
+};
+
 type ControlKey = "left" | "right";
 type ControlAction = ControlKey | "jump" | "down" | "escape";
 type SpriteFrameSetName = "default" | "fall" | "jump" | "land" | "walk";
@@ -55,6 +73,7 @@ type SpriteGameState = {
   fallFrames: SpriteFrame[];
   frames: SpriteFrame[];
   game: SpriteGameConfig;
+  geometryVersion: number;
   grounded: boolean;
   hasSpawned: boolean;
   jumpFrames: SpriteFrame[];
@@ -68,11 +87,14 @@ type SpriteGameState = {
   platforms: TextPlatform[];
   platformsDirty: boolean;
   pressureTargetCache: WeakMap<HTMLElement, HTMLElement[]>;
+  pressureTargetMetricsCache: WeakMap<HTMLElement, TextPressureTargetMetricCache>;
   pressuredElements: Set<HTMLElement>;
   rippleElements: Set<HTMLElement>;
+  rippleFrameIds: number[];
   ripplePlatformLine: HTMLElement | null;
   rippleTimers: number[];
   rippleToken: number;
+  runnerSize: RunnerSize;
   vx: number;
   vy: number;
   walkFrames: SpriteFrame[];
@@ -91,6 +113,7 @@ const TEXT_PLATFORM_SELECTOR = [
   "[data-sprite-platform-root] .archive-panel__count",
   "[data-sprite-platform-root] .post-card__eyebrow span",
   "[data-sprite-platform-root] .post-card__eyebrow time",
+  ".page-heading .blog-scene-line-fragment",
   ".page-heading__title",
   ".page-heading__copy",
 ].join(",");
@@ -114,7 +137,7 @@ const COYOTE_TIME_MS = 110;
 const DROP_THROUGH_MS = 520;
 const DROP_THROUGH_NUDGE_PX = 14;
 const BOTTOM_FLOOR_GAP_PX = 38;
-const LANDING_RIPPLE_MIN_VELOCITY = 0;
+const LANDING_RIPPLE_MIN_VELOCITY = 280;
 const TEXT_RIPPLE_DURATION_MS = 760;
 const VIEWPORT_PADDING_PX = 6;
 const VIEWPORT_TOP_PADDING_PX = 18;
@@ -341,12 +364,16 @@ function ensureBlogSceneLetters(root: HTMLElement): HTMLElement[] {
   );
 }
 
-function collectTextPlatforms(game: SpriteGameConfig, runner: HTMLElement): TextPlatform[] {
+function collectTextPlatforms(
+  game: SpriteGameConfig,
+  runner: HTMLElement,
+  runnerSize = getRunnerSize(runner),
+): TextPlatform[] {
   const platforms: TextPlatform[] = [];
   const platformScope = runner.closest(".container") ?? document;
   const elements = Array.from(platformScope.querySelectorAll(TEXT_PLATFORM_SELECTOR));
   const lowerBound = window.innerHeight + 260;
-  const { height } = getRunnerSize(runner);
+  const { height } = runnerSize;
   const minimumPlatformTop = height * game.footHeightRatio + VIEWPORT_TOP_PADDING_PX;
 
   for (const element of elements) {
@@ -431,7 +458,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
   );
 }
 
-function getRunnerSize(runner: HTMLElement): { height: number; width: number } {
+function getRunnerSize(runner: HTMLElement): RunnerSize {
   const rect = runner.getBoundingClientRect();
   return {
     height: Math.max(rect.height, 48),
@@ -511,6 +538,48 @@ function getTextPressureTargets(state: SpriteGameState, platform: TextPlatform):
   return fallbackTargets;
 }
 
+function getTextPressureTargetMetrics(
+  state: SpriteGameState,
+  platform: TextPlatform,
+): TextPressureTargetMetric[] {
+  const cached = state.pressureTargetMetricsCache.get(platform.lineElement);
+
+  if (
+    cached?.version === state.geometryVersion &&
+    cached.targets.every((target) => target.element.isConnected)
+  ) {
+    return cached.targets;
+  }
+
+  const targets = getTextPressureTargets(state, platform);
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const metrics = targets
+    .map((element): TextPressureTargetMetric | null => {
+      const rect = element.getBoundingClientRect();
+
+      if (rect.width <= 0 || rect.height <= 0) {
+        return null;
+      }
+
+      return {
+        centerDocumentX: rect.left + scrollX + rect.width / 2,
+        centerDocumentY: rect.top + scrollY + rect.height / 2,
+        element,
+        height: rect.height,
+        width: rect.width,
+      };
+    })
+    .filter((target): target is TextPressureTargetMetric => target !== null);
+
+  state.pressureTargetMetricsCache.set(platform.lineElement, {
+    targets: metrics,
+    version: state.geometryVersion,
+  });
+
+  return metrics;
+}
+
 function resetTextPressureElement(element: HTMLElement): void {
   delete element.dataset.spriteTextPressure;
   element.style.removeProperty("--sprite-text-pressure-y");
@@ -571,7 +640,7 @@ function clearTextPressure(state: SpriteGameState): void {
   state.pressuredElements.clear();
 }
 
-function applyTextPressure(runner: HTMLElement, state: SpriteGameState): void {
+function applyTextPressure(state: SpriteGameState): void {
   const platform = state.currentPlatform;
 
   if (!state.active || !state.grounded || !platform?.element.isConnected) {
@@ -587,20 +656,19 @@ function applyTextPressure(runner: HTMLElement, state: SpriteGameState): void {
 
   clearTextEffectsOutsideLine(state, platform.lineElement);
 
-  const { width } = getRunnerSize(runner);
+  const { width } = state.runnerSize;
   const footCenterX = state.x + width / 2;
-  const targets = getTextPressureTargets(state, platform);
+  const targets = getTextPressureTargetMetrics(state, platform);
   const horizontalRadius = Math.max(34, width * 0.34);
   const nextPressure = new Map<HTMLElement, { rotate: string; strength: string; y: string }>();
+  const scrollX = window.scrollX;
 
   for (const target of targets) {
-    const rect = target.getBoundingClientRect();
-
-    if (rect.width <= 0 || rect.height <= 0) {
+    if (target.width <= 0 || target.height <= 0) {
       continue;
     }
 
-    const centerX = rect.left + rect.width / 2;
+    const centerX = target.centerDocumentX - scrollX;
     const horizontalDistance = Math.abs(footCenterX - centerX);
     const horizontalStrength = Math.cos(
       clamp(horizontalDistance / horizontalRadius, 0, 1) * (Math.PI / 2),
@@ -612,7 +680,7 @@ function applyTextPressure(runner: HTMLElement, state: SpriteGameState): void {
     }
 
     const direction = clamp((centerX - footCenterX) / horizontalRadius, -1, 1);
-    nextPressure.set(target, {
+    nextPressure.set(target.element, {
       rotate: `${(direction * strength * 5.5).toFixed(2)}deg`,
       strength: strength.toFixed(3),
       y: `${(0.8 + strength * 8.4).toFixed(2)}px`,
@@ -644,6 +712,14 @@ function clearRippleTimers(state: SpriteGameState): void {
     }
   }
 
+  while (state.rippleFrameIds.length > 0) {
+    const frameId = state.rippleFrameIds.pop();
+
+    if (typeof frameId === "number") {
+      window.cancelAnimationFrame(frameId);
+    }
+  }
+
   for (const element of state.rippleElements) {
     resetTextRippleElement(element);
   }
@@ -662,7 +738,7 @@ function triggerTextRipple(
     return;
   }
 
-  const targets = getTextPressureTargets(state, platform);
+  const targets = getTextPressureTargetMetrics(state, platform);
 
   if (targets.length === 0) {
     return;
@@ -677,35 +753,55 @@ function triggerTextRipple(
   clearTextEffectsOutsideLine(state, platform.lineElement);
   state.ripplePlatformLine = platform.lineElement;
 
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const rippleTargets: Array<{ delay: number; element: HTMLElement; rotate: number; y: number }> = [];
+
   for (const target of targets) {
-    const rect = target.getBoundingClientRect();
-    const targetCenterX = rect.left + rect.width / 2;
-    const targetCenterY = rect.top + rect.height / 2;
+    const targetCenterX = target.centerDocumentX - scrollX;
+    const targetCenterY = target.centerDocumentY - scrollY;
     const distance = Math.hypot(targetCenterX - impactX, targetCenterY - platform.top);
     const delay = Math.min(420, distance * 0.52);
     const rippleY = 2.4 + power * 7.8;
     const rippleRotate = clamp((targetCenterX - impactX) / 160, -1, 1) * (1.6 + power * 4.2);
 
     maxDelay = Math.max(maxDelay, delay);
-    delete target.dataset.spriteTextRipple;
-    target.style.setProperty("--sprite-ripple-delay", `${delay.toFixed(0)}ms`);
-    target.style.setProperty("--sprite-ripple-y", `${rippleY.toFixed(2)}px`);
-    target.style.setProperty("--sprite-ripple-rotate", `${rippleRotate.toFixed(2)}deg`);
-
-    // Restart the CSS animation even when landing repeatedly on the same sentence.
-    void target.offsetWidth;
-    target.dataset.spriteTextRipple = "true";
-    state.rippleElements.add(target);
+    rippleTargets.push({
+      delay,
+      element: target.element,
+      rotate: rippleRotate,
+      y: rippleY,
+    });
   }
+
+  for (const target of rippleTargets) {
+    delete target.element.dataset.spriteTextRipple;
+    target.element.style.setProperty("--sprite-ripple-delay", `${target.delay.toFixed(0)}ms`);
+    target.element.style.setProperty("--sprite-ripple-y", `${target.y.toFixed(2)}px`);
+    target.element.style.setProperty("--sprite-ripple-rotate", `${target.rotate.toFixed(2)}deg`);
+  }
+
+  const frameId = window.requestAnimationFrame(() => {
+    if (state.rippleToken !== token) {
+      return;
+    }
+
+    for (const target of rippleTargets) {
+      target.element.dataset.spriteTextRipple = "true";
+      state.rippleElements.add(target.element);
+    }
+  });
+
+  state.rippleFrameIds.push(frameId);
 
   const timerId = window.setTimeout(() => {
     if (state.rippleToken !== token) {
       return;
     }
 
-    for (const target of targets) {
-      resetTextRippleElement(target);
-      state.rippleElements.delete(target);
+    for (const target of rippleTargets) {
+      resetTextRippleElement(target.element);
+      state.rippleElements.delete(target.element);
     }
   }, TEXT_RIPPLE_DURATION_MS + maxDelay);
 
@@ -807,10 +903,10 @@ function getBottomFloorTop(): number {
 }
 
 function spawnAtBottom(runner: HTMLElement, state: SpriteGameState): boolean {
-  state.platforms = collectTextPlatforms(state.game, runner);
+  state.platforms = collectTextPlatforms(state.game, runner, state.runnerSize);
   state.platformsDirty = false;
 
-  const { height, width } = getRunnerSize(runner);
+  const { height, width } = state.runnerSize;
   const fallbackTargetX = window.innerWidth * state.game.spawnViewportXRatio;
   const targetX = Number.isFinite(state.x) ? state.x + width / 2 : fallbackTargetX;
   const floorTop = getBottomFloorTop();
@@ -876,11 +972,12 @@ function stepPhysics(
   deltaSeconds: number,
 ): void {
   if (state.platformsDirty || hasDisconnectedPlatforms(state.platforms)) {
-    state.platforms = collectTextPlatforms(state.game, runner);
+    state.runnerSize = getRunnerSize(runner);
+    state.platforms = collectTextPlatforms(state.game, runner, state.runnerSize);
     state.platformsDirty = false;
   }
 
-  const { height, width } = getRunnerSize(runner);
+  const { height, width } = state.runnerSize;
   const wasGrounded = state.grounded;
   const previousFootY = state.y + height * state.game.footHeightRatio;
   const leftPressed = state.keys.has("left");
@@ -889,15 +986,22 @@ function stepPhysics(
     (rightPressed ? 1 : 0) * state.game.moveSpeedPxPerSecond -
     (leftPressed ? 1 : 0) * state.game.moveSpeedPxPerSecond;
 
+  const acceleration = state.grounded
+    ? state.game.moveAccelerationPxPerSecondSquared
+    : state.game.moveAccelerationPxPerSecondSquared * 0.65;
+  const friction = state.grounded
+    ? state.game.moveFrictionPxPerSecondSquared
+    : state.game.moveFrictionPxPerSecondSquared * 0.16;
+
   if (targetVelocity !== 0) {
     state.vx = moveToward(
       state.vx,
       targetVelocity,
-      state.game.moveAccelerationPxPerSecondSquared * deltaSeconds,
+      acceleration * deltaSeconds,
     );
     state.facing = targetVelocity < 0 ? "left" : "right";
   } else {
-    state.vx = moveToward(state.vx, 0, state.game.moveFrictionPxPerSecondSquared * deltaSeconds);
+    state.vx = moveToward(state.vx, 0, friction * deltaSeconds);
   }
 
   if (
@@ -934,6 +1038,10 @@ function stepPhysics(
     const nextFootY = nextY + height * state.game.footHeightRatio;
 
     for (const platform of state.platforms) {
+      if (platform.top > nextFootY + state.game.platformVerticalForgivenessPx) {
+        break;
+      }
+
       if (shouldIgnorePlatformForDrop(state, platform, now)) {
         continue;
       }
@@ -994,7 +1102,7 @@ function stepPhysics(
     state.hasSpawned = spawnAtBottom(runner, state);
   }
 
-  applyTextPressure(runner, state);
+  applyTextPressure(state);
 }
 
 function startGame(runner: HTMLElement, state: SpriteGameState): void {
@@ -1074,6 +1182,9 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     return;
   }
 
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
   runner.dataset.spriteReady = "true";
   runner.dataset.spriteGameReady = "true";
   runner.dataset.gameState = "idle";
@@ -1119,6 +1230,7 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     fallFrames: payload.fallFrames,
     frames: payload.frames,
     game: payload.game,
+    geometryVersion: 0,
     grounded: false,
     hasSpawned: false,
     jumpFrames: payload.jumpFrames,
@@ -1132,11 +1244,14 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
     platforms: [],
     platformsDirty: true,
     pressureTargetCache: new WeakMap<HTMLElement, HTMLElement[]>(),
+    pressureTargetMetricsCache: new WeakMap<HTMLElement, TextPressureTargetMetricCache>(),
     pressuredElements: new Set<HTMLElement>(),
     rippleElements: new Set<HTMLElement>(),
+    rippleFrameIds: [],
     ripplePlatformLine: null,
     rippleTimers: [],
     rippleToken: 0,
+    runnerSize: getRunnerSize(runner),
     vx: 0,
     vy: 0,
     walkFrames: payload.walkFrames,
@@ -1145,18 +1260,44 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
   };
 
   const markPlatformsDirty = () => {
+    if (signal.aborted || !runner.isConnected) {
+      return;
+    }
+
+    state.runnerSize = getRunnerSize(runner);
+    state.platformsDirty = true;
+    state.geometryVersion += 1;
+  };
+
+  const markPlatformsScrolled = () => {
+    if (signal.aborted || !runner.isConnected) {
+      return;
+    }
+
     state.platformsDirty = true;
   };
 
+  let resizeObserver: ResizeObserver | null = null;
+
+  if ("ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(markPlatformsDirty);
+    resizeObserver.observe(runner);
+  }
+
+  signal.addEventListener("abort", () => {
+    resizeObserver?.disconnect();
+  });
+
   runner.addEventListener("click", () => {
     startGame(runner, state);
-  });
+  }, { signal });
 
   window.addEventListener(
     "keydown",
     (event) => {
       if (!runner.isConnected) {
         pauseGame(runner, state);
+        abortController.abort();
         return;
       }
 
@@ -1195,30 +1336,46 @@ function initSpriteRunner(runner: HTMLButtonElement): void {
 
       state.keys.add(controlKey);
     },
-    { passive: false },
+    { passive: false, signal },
   );
 
   window.addEventListener("keyup", (event) => {
     if (!runner.isConnected) {
       pauseGame(runner, state);
+      abortController.abort();
       return;
     }
 
     const controlKey = getControlKey(event.key);
 
+    if (controlKey === "jump") {
+      state.jumpQueuedUntil = 0;
+
+      if (state.vy < -220) {
+        state.vy *= 0.52;
+      }
+      return;
+    }
+
     if (controlKey === "left" || controlKey === "right") {
       state.keys.delete(controlKey);
     }
-  });
+  }, { signal });
 
-  window.addEventListener("scroll", markPlatformsDirty, { passive: true });
-  window.addEventListener("resize", markPlatformsDirty);
-  document.addEventListener("astro:page-load", markPlatformsDirty);
+  window.addEventListener("scroll", markPlatformsScrolled, { passive: true, signal });
+  window.addEventListener("resize", markPlatformsDirty, { signal });
+  document.addEventListener("astro:page-load", markPlatformsDirty, { signal });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      pauseGame(runner, state);
+    }
+  }, { signal });
   document.addEventListener("astro:before-swap", () => {
     pauseGame(runner, state);
     clearTextEffectsOutsideLine(state, null);
     clearAllSpriteTextEffects(runner.closest(".container") ?? document);
-  });
+    abortController.abort();
+  }, { signal });
 
   if ("fonts" in document) {
     void document.fonts.ready.then(markPlatformsDirty);
