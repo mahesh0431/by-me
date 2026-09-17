@@ -1862,7 +1862,7 @@ pre code,
   align-self: end;
   overflow: hidden;
   border-radius: 50%;
-  background: var(--portrait-backdrop);
+  background: color-mix(in srgb, var(--portrait-backdrop) 30%, transparent);
   isolation: isolate;
 }
 .personal-intro__photo {
