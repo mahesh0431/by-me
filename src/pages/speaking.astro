@@ -38,14 +38,13 @@ const sceneGroups = archiveGroups.map(({ year, posts }) => ({
   title="Talks and Events"
   description={pageDescription}
   structuredData={[createPersonJsonLd(profile)]}
-  pageClass="page-speaking"
+  pageClass="page-speaking page-collection"
 >
-  <section class="page-heading page-heading--centered">
+  <section class="page-heading">
     <h1 class="page-heading__title">Talks and Events</h1>
     <p class="page-heading__copy">
-      Talks, workshops, and events on enterprise AI, SAP, SAP BTP, agentic systems, architecture, and building for real enterprise systems.
+      Conversations, workshops, and lessons from building enterprise systems.
     </p>
-    <span class="section-rule" aria-hidden="true"></span>
   </section>
 
   <BlogScene groups={sceneGroups}>

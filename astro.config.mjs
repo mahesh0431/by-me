@@ -9,7 +9,7 @@ export default defineConfig({
   trailingSlash: "always",
   prefetch: {
     prefetchAll: true,
-    defaultStrategy: "viewport",
+    defaultStrategy: "hover",
   },
   integrations: [
     sitemap({

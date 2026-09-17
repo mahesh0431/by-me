@@ -38,12 +38,11 @@ const sceneGroups = archiveGroups.map(({ year, posts }) => ({
   title="Writing"
   description={pageDescription}
   structuredData={structuredData}
-  pageClass="page-archive"
+  pageClass="page-archive page-writing page-collection"
 >
-  <section class="page-heading page-heading--centered">
+  <section class="page-heading">
     <h1 class="page-heading__title">Writing</h1>
-    <p class="page-heading__copy">Notes and posts grouped by year.</p>
-    <span class="section-rule" aria-hidden="true"></span>
+    <p class="page-heading__copy">Practical notes on architecture, AI, SAP, and building software.</p>
   </section>
 
   <BlogScene groups={sceneGroups}>

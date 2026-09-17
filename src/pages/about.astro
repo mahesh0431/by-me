@@ -6,7 +6,6 @@ import { getProfile } from '../lib/profile';
 import { createPersonJsonLd, createProfilePageJsonLd } from '../lib/structured-data';
 import IconLinkedIn from '../components/icons/IconLinkedIn.astro';
 import IconX from '../components/icons/IconX.astro';
-import EntryIcon from '../components/ui/EntryIcon.astro';
 
 const profile = await getProfile();
 const pageDescription = profile.data.aboutDescription;
@@ -14,12 +13,6 @@ const structuredData = [
   createPersonJsonLd(profile),
   createProfilePageJsonLd(profile, '/about/', pageDescription),
 ];
-const paragraphs = profile.body.trim().split(/\n\s*\n/);
-const sections = [
-  { title: "Hey! I'm Mahesh.", icon: 'spark', body: paragraphs[0] },
-  { title: 'What I do', icon: 'structure', body: paragraphs[1] },
-  { title: 'Writing and sharing', icon: 'book', body: paragraphs[2] },
-] as const;
 ---
 
 <BaseLayout
@@ -28,23 +21,22 @@ const sections = [
   structuredData={structuredData}
   pageClass="page-about"
 >
-  <article class="about-layout">
-    <aside class="about-card surface">
+  <article class="personal-about">
+    <header class="personal-intro">
+      <div class="personal-intro__portrait">
       <img
-        src={withBasePath(profile.data.avatar)}
+        src={withBasePath('/images/mahesh-editorial-v2.webp')}
         alt={profile.data.name}
-        class="about-card__avatar"
-        width="320"
-        height="320"
+        class="personal-intro__photo"
+        width="720"
+        height="900"
+        fetchpriority="high"
       />
-      <div class="about-card__identity">
-        <h1 class="about-card__name">{profile.data.name}</h1>
-        <p class="about-card__role">{profile.data.role}</p>
-        <p class="about-card__subrole">Enterprise AI, SAP BTP, and agentic systems</p>
-        <span class="section-rule" aria-hidden="true"></span>
       </div>
-
-      <div class="about-card__social" aria-label="Social links">
+      <div class="personal-intro__copy">
+        <h1>A little about me.</h1>
+        <p class="personal-intro__lead">I’m Mahesh, an architect in SAP’s Office of the CTO. I work on enterprise AI, SAP BTP, and turning ideas into systems people can use.</p>
+      <div class="personal-social" aria-label="Social links">
         <a href={LINKEDIN_URL} target="_blank" rel="noreferrer">
           <IconLinkedIn size={18} />
           <span>LinkedIn</span>
@@ -54,33 +46,39 @@ const sections = [
           <span>X (Twitter)</span>
         </a>
       </div>
-    </aside>
-
-    <div class="about-flow">
-      {sections.map((section) => (
-        <section class="about-section surface">
-          <div class="about-section__icon">
-            <EntryIcon name={section.icon} />
-          </div>
-          <div>
-            <h2 class="about-section__title">{section.title}</h2>
-            <span class="section-rule section-rule--small" aria-hidden="true"></span>
-            <p class="about-section__body">{section.body}</p>
-          </div>
-        </section>
-      ))}
-
-      <aside class="about-note about-note--disclaimer surface">
-        <div class="about-note__icon">
-          <EntryIcon name="disclaimer" />
-        </div>
+      </div>
+    </header>
+    <div class="personal-story about-story">
+      <section class="about-story__section">
+        <h2>What I’m working on</h2>
         <div>
-          <h2 class="about-note__title">Disclaimer</h2>
-          <p class="about-note__body">
+          <p>These days, much of my work is around enterprise AI, SAP BTP, data, and agentic systems—especially moving AI-native ideas beyond demos into real enterprise systems.</p>
+          <p>I collaborate with teams across lines of business, partners, and AI-native companies on scalable capabilities, reference patterns, and architecture direction.</p>
+        </div>
+      </section>
+      <section class="about-story__section">
+        <h2>My background</h2>
+        <div>
+          <p>Over the last 13+ years, I’ve designed and delivered enterprise applications across SAP platforms, AI ecosystems, and hyperscaler environments.</p>
+          <p>I’ve worked with global enterprises, including Fortune 50 customers, on enterprise architecture, SAP platforms, and AI adoption.</p>
+        </div>
+      </section>
+      <section class="about-story__section">
+        <h2>Writing and sharing</h2>
+        <div>
+        <p>I speak at community and industry events, write for SAP PRESS, and have published 40+ posts on SAP Community.</p>
+        <p>This site brings together my writing, talks, and practical notes on enterprise architecture, coding, AI, and SAP.</p>
+        <div class="personal-social">
+          <a class="personal-link" href={withBasePath('/blog/')}>Read my writing <span aria-hidden="true">→</span></a>
+          <a class="personal-link" href={withBasePath('/speaking/')}>Explore my talks <span aria-hidden="true">→</span></a>
+        </div>
+        </div>
+      </section>
+      <aside class="personal-disclaimer">
+          <p>
             All opinions and content on this site are my own and do not represent the views of my
             employer.
           </p>
-        </div>
       </aside>
     </div>
   </article>

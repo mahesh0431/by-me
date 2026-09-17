@@ -117,8 +117,24 @@ const darkGiscusTheme = isLocalPreview
           attributes: true,
         });
 
-        createGiscusScript();
-        bindIframe();
+        // Keep third-party comments off the critical reading path.
+        let visibilityObserver;
+        if ("IntersectionObserver" in window) {
+          visibilityObserver = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              createGiscusScript();
+              visibilityObserver.disconnect();
+            }
+          }, { rootMargin: "600px" });
+          visibilityObserver.observe(root);
+        } else {
+          createGiscusScript();
+        }
+        document.addEventListener("astro:before-swap", () => {
+          visibilityObserver?.disconnect();
+          rootObserver.disconnect();
+          themeObserver.disconnect();
+        }, { once: true });
       });
     })();
   </script>

@@ -75,9 +75,9 @@ function getSpeakingImageSrc(speakingEntry: CollectionEntry<"speaking">, imagePa
   <article class="article-shell">
     <div class="article-frame surface">
       <header class="article-hero">
+        <a class="back-link" href={withBasePath('/speaking/')}>All talks</a>
         <h1 class="article-title">{entry.data.title}</h1>
         <p class="article-lead">{entry.data.summary}</p>
-        <span class="section-rule" aria-hidden="true"></span>
         <div class="post-meta-block">
           <p class="post-meta">
             <span>{entry.data.event}</span>

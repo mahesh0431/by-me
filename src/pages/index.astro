@@ -40,43 +40,38 @@ const pageDescription =
   structuredData={[createWebSiteJsonLd(), createPersonJsonLd(profile)]}
   pageClass="page-home"
 >
-  <section class="home-hero surface surface--hero">
-    <div class="home-hero__art" aria-hidden="true">
-      <span class="home-hero__beam home-hero__beam--one"></span>
-      <span class="home-hero__beam home-hero__beam--two"></span>
-      <span class="home-hero__beam home-hero__beam--three"></span>
-      <span class="home-hero__grid"></span>
-    </div>
-
-    <div class="home-hero__portrait">
+  <section class="personal-intro" aria-labelledby="welcome-title">
+    <div class="personal-intro__portrait">
       <img
-        src={withBasePath(profile.data.avatar)}
+        src={withBasePath('/images/mahesh-editorial-v2.webp')}
         alt={profile.data.name}
-        class="home-hero__avatar"
-        width="240"
-        height="240"
+        class="personal-intro__photo"
+        width="720"
+        height="900"
+        fetchpriority="high"
       />
     </div>
 
-    <div class="home-hero__content">
-      <h1 class="display-title">{profile.data.homeHeading}</h1>
-      <span class="section-rule" aria-hidden="true"></span>
-      <p class="hero-copy">
-        {profile.data.homeIntro}
-        <a class="home-hero__link" href={withBasePath('/about/')}>
+    <div class="personal-intro__copy">
+      <h1 id="welcome-title">{profile.data.homeHeading}.</h1>
+      <p class="personal-intro__lead">
+        Architect in SAP’s Office of the CTO. I work on enterprise AI and SAP BTP,
+        and write about what it takes to turn ideas into working systems.
+      </p>
+        <a class="personal-link" href={withBasePath('/about/')}>
           More about me
           <span aria-hidden="true">&rarr;</span>
         </a>
-      </p>
     </div>
   </section>
 
-  <section class="section-head">
+  <section class="home-recent" aria-labelledby="recent-title">
+  <header class="section-head">
     <div>
-      <h2 class="section-title">Recent</h2>
-      <p class="section-kicker">Writing, talks, events, and notes on enterprise architecture, coding, AI, SAP, and agentic systems.</p>
+      <h2 class="section-title" id="recent-title">Recent</h2>
+      <p class="section-kicker">Ideas, lessons, and conversations from my work.</p>
     </div>
-  </section>
+  </header>
 
   <section class="recent-list entry-list--home">
     {recentEntries.map((entry, index) => (
@@ -91,5 +86,6 @@ const pageDescription =
         index={index}
       />
     ))}
+  </section>
   </section>
 </BaseLayout>

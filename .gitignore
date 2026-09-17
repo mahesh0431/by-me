@@ -3,6 +3,10 @@ dist/
 # generated types
 .astro/
 .playwright-cli/
+.playwright-mcp/
+.codex/qa/
+concepts/
+design-qa.md
 
 # dependencies
 node_modules/

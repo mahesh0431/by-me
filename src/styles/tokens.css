@@ -2,18 +2,21 @@
   --font-sans: "Roboto Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "Roboto Mono", "SF Mono", "Fira Code", monospace;
 
-  --surface-page: #f7f3ec;
-  --surface-page-rgb: 247 243 236;
-  --surface-shell: rgba(251, 247, 240, 0.9);
-  --surface-panel: rgba(248, 244, 236, 0.86);
-  --surface-panel-strong: rgba(251, 247, 240, 0.92);
-  --surface-muted: rgba(237, 231, 221, 0.86);
-  --surface-subtle: rgba(250, 246, 239, 0.66);
-  --surface-hover: rgba(252, 248, 241, 0.96);
+  --surface-page: #faf9f6;
+  --surface-page-rgb: 250 249 246;
+  --intro-wash: rgba(199, 210, 239, 0.58);
+  --intro-lilac: rgba(216, 231, 229, 0.42);
+  --portrait-backdrop: #e4e8f0;
+  --surface-shell: rgba(250, 249, 246, 0.92);
+  --surface-panel: #ffffff;
+  --surface-panel-strong: #ffffff;
+  --surface-muted: #eef0f5;
+  --surface-subtle: rgba(255, 255, 255, 0.65);
+  --surface-hover: #ffffff;
 
-  --text-primary: #22252c;
-  --text-secondary: #59616c;
-  --text-tertiary: #838995;
+  --text-primary: #292d3b;
+  --text-secondary: #565c6b;
+  --text-tertiary: #646c7a;
   --text-link: #1d77a6;
   --text-link-hover: #155c80;
   --text-inverse: #f7f5f1;
@@ -22,12 +25,12 @@
   --border-strong: rgba(34, 37, 44, 0.14);
   --divider: rgba(34, 37, 44, 0.07);
 
-  --accent: #276a74;
-  --accent-strong: #1d545c;
-  --accent-soft: rgba(39, 106, 116, 0.12);
-  --accent-glow: rgba(39, 106, 116, 0.18);
-  --hero-glow: rgba(216, 209, 197, 0.36);
-  --ambient-cool: rgba(39, 106, 116, 0.08);
+  --accent: #506b98;
+  --accent-strong: #394f78;
+  --accent-soft: rgba(107, 130, 174, 0.12);
+  --accent-glow: rgba(70, 111, 136, 0.18);
+  --hero-glow: rgba(206, 223, 233, 0.22);
+  --ambient-cool: rgba(70, 111, 136, 0.08);
   --ambient-warm: rgba(150, 97, 48, 0.07);
 
   --focus-color: #2c7f8a;
@@ -66,6 +69,9 @@
 
   --surface-page: #141618;
   --surface-page-rgb: 20 22 24;
+  --intro-wash: rgba(52, 89, 113, 0.18);
+  --intro-lilac: rgba(90, 75, 116, 0.16);
+  --portrait-backdrop: #263944;
   --surface-shell: rgba(24, 27, 31, 0.86);
   --surface-panel: rgba(30, 33, 37, 0.92);
   --surface-panel-strong: rgba(34, 37, 41, 0.96);
