@@ -2207,8 +2207,29 @@ pre code,
     font-size: clamp(1.4rem, 5.8vw, 1.8rem);
     margin: 0;
   }
+  .page-home .personal-intro {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    gap: 1.25rem;
+  }
+  .page-home .personal-intro__portrait {
+    width: 7.5rem;
+  }
   .page-home .personal-intro h1 {
-    max-width: 8ch;
+    grid-column: 1;
+    grid-row: 2;
+    max-width: none;
+    font-size: clamp(2rem, 8.5vw, 2.5rem);
+  }
+  .page-home .personal-intro__copy .personal-intro__lead {
+    grid-row: 3;
+    width: 100%;
+    max-width: none;
+  }
+  .page-home .personal-intro .personal-link {
+    grid-row: 4;
+    justify-self: center;
   }
   .personal-intro__lead {
     font-size: 1rem;
