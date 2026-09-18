@@ -1888,6 +1888,12 @@ pre code,
   letter-spacing: -0.035em;
   line-height: 1.15;
 }
+.page-home .personal-intro h1 {
+  font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1.08;
+  text-wrap: balance;
+}
 .personal-intro__lead {
   margin: 0 0 1.25rem;
   max-width: 34rem;
@@ -2200,6 +2206,9 @@ pre code,
     align-self: center;
     font-size: clamp(1.4rem, 5.8vw, 1.8rem);
     margin: 0;
+  }
+  .page-home .personal-intro h1 {
+    max-width: 8ch;
   }
   .personal-intro__lead {
     font-size: 1rem;
