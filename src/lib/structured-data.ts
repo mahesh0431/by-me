@@ -123,13 +123,14 @@ export function createBlogJsonLd(
 export function createBlogPostingJsonLd(
   post: BlogPost,
   profile: Profile,
-  siteOrigin = SITE_ORIGIN,
+  options: { imageUrl?: string | null; siteOrigin?: string } = {},
 ): JsonLdObject {
+  const siteOrigin = options.siteOrigin ?? SITE_ORIGIN;
   const slug = getPostRouteSlug(post);
   const url = toSiteUrl(`/blog/${slug}/`, siteOrigin);
   const title = post.data.seoTitle ?? post.data.title;
   const description = post.data.seoDescription ?? post.data.summary;
-  const image = toSiteUrl(post.data.heroImage ?? DEFAULT_OG_IMAGE, siteOrigin);
+  const image = toSiteUrl(options.imageUrl ?? DEFAULT_OG_IMAGE, siteOrigin);
   const dateModified = post.data.updated ?? post.data.created;
 
   return {

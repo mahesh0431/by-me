@@ -1,8 +1,10 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 
 import GiscusComments from "../components/blog/GiscusComments.astro";
 import PostMeta from "../components/blog/PostMeta.astro";
+import { getHeroWidths, getSocialImageSrc } from "../lib/hero-image";
 import { withBasePath } from "../lib/paths";
 import { getProfile } from "../lib/profile";
 import { getReadingTimeLabel } from "../lib/reading-time";
@@ -16,15 +18,11 @@ interface Props {
 
 const { post } = Astro.props;
 const profile = await getProfile();
-const socialImage = post.data.heroImage ?? DEFAULT_OG_IMAGE;
+const heroImage = post.data.heroImage;
+const socialImage = heroImage ? await getSocialImageSrc(heroImage) : DEFAULT_OG_IMAGE;
 const pageTitle = post.data.seoTitle ?? post.data.title;
 const pageDescription = post.data.seoDescription ?? post.data.summary;
 const readingTime = getReadingTimeLabel(post.body);
-const heroImageSrc = post.data.heroImage
-  ? /^https?:\/\//.test(post.data.heroImage)
-    ? post.data.heroImage
-    : withBasePath(post.data.heroImage)
-  : null;
 const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString();
 ---
 
@@ -32,12 +30,13 @@ const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString
   title={pageTitle}
   description={pageDescription}
   ogImage={socialImage}
+  ogImageAlt={post.data.title}
   ogType="article"
   canonicalUrl={post.data.canonicalUrl}
   articlePublishedTime={post.data.created.toISOString()}
   articleModifiedTime={articleModifiedTime}
   articleTags={post.data.tags}
-  structuredData={[createPersonJsonLd(profile), createBlogPostingJsonLd(post, profile)]}
+  structuredData={[createPersonJsonLd(profile), createBlogPostingJsonLd(post, profile, { imageUrl: socialImage })]}
   pageClass="page-article"
   showScrollControls
 >
@@ -54,13 +53,14 @@ const articleModifiedTime = (post.data.updated ?? post.data.created).toISOString
           readingTime={readingTime}
         />
         {
-          heroImageSrc && (
-            <img
+          heroImage && (
+            <Image
               class="article-hero-media"
-              src={heroImageSrc}
+              src={heroImage}
               alt={`${post.data.title} hero image`}
+              widths={getHeroWidths(heroImage)}
+              sizes="(max-width: 1024px) calc(100vw - 2rem), 64rem"
               loading="eager"
-              decoding="async"
               fetchpriority="high"
             />
           )

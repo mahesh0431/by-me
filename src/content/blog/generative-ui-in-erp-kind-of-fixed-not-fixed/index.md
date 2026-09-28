@@ -9,7 +9,7 @@ tags:
   - ui
   - sap
 summary: A thinking-out-loud note on why Generative UI feels exciting, irritating, and not yet fully practical for ERP.
-heroImage: /blog/generative-ui-in-erp-kind-of-fixed-not-fixed/header-generative-ui-in-erp.png
+heroImage: ./header-generative-ui-in-erp.png
 ---
 
 > ## TL;DR for impatient readers

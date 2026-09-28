@@ -1,8 +1,9 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
 
 import { formatDate } from "../lib/dates";
+import { getHeroWidths, getSocialImageSrc } from "../lib/hero-image";
 import { withBasePath } from "../lib/paths";
 import { getProfile } from "../lib/profile";
 import { DEFAULT_OG_IMAGE } from "../lib/site";
@@ -13,18 +14,10 @@ interface Props {
   entry: CollectionEntry<"speaking">;
 }
 
-type ImageModule = {
-  default: ImageMetadata | string;
-};
-
-const speakingImages = import.meta.glob<ImageModule>(
-  "../content/speaking/**/*.{avif,gif,jpeg,jpg,png,svg,webp}",
-  { eager: true },
-);
-
 const { entry } = Astro.props;
 const profile = await getProfile();
-const heroImageSrc = entry.data.heroImage ? getSpeakingImageSrc(entry, entry.data.heroImage) : null;
+const heroImage = entry.data.heroImage;
+const heroImageSrc = heroImage ? await getSocialImageSrc(heroImage) : null;
 const socialImage = heroImageSrc ?? DEFAULT_OG_IMAGE;
 const articleModifiedTime = (entry.data.updated ?? entry.data.created).toISOString();
 const updatedLabel =
@@ -32,29 +25,6 @@ const updatedLabel =
     ? formatDate(entry.data.updated)
     : null;
 
-function getSpeakingImageSrc(speakingEntry: CollectionEntry<"speaking">, imagePath: string): string {
-  if (/^https?:\/\//.test(imagePath)) {
-    return imagePath;
-  }
-
-  if (imagePath.startsWith("/")) {
-    return withBasePath(imagePath);
-  }
-
-  const normalizedEntryId = speakingEntry.id.replaceAll("\\", "/");
-  const entryDirectory = normalizedEntryId.split("/").slice(0, -1).join("/");
-  const normalizedImagePath = imagePath.replace(/^\.\//, "");
-  const imageKey = `../content/speaking/${entryDirectory}/${normalizedImagePath}`;
-  const image = speakingImages[imageKey]?.default;
-
-  if (!image) {
-    throw new Error(
-      `Speaking heroImage "${imagePath}" could not be resolved relative to ${speakingEntry.id}.`,
-    );
-  }
-
-  return typeof image === "string" ? image : image.src;
-}
 ---
 
 <BaseLayout
@@ -96,13 +66,14 @@ function getSpeakingImageSrc(speakingEntry: CollectionEntry<"speaking">, imagePa
           }
         </div>
         {
-          heroImageSrc && (
-            <img
+          heroImage && (
+            <Image
               class="article-hero-media"
-              src={heroImageSrc}
+              src={heroImage}
               alt={`${entry.data.title} session image`}
+              widths={getHeroWidths(heroImage)}
+              sizes="(max-width: 1024px) calc(100vw - 2rem), 64rem"
               loading="eager"
-              decoding="async"
               fetchpriority="high"
             />
           )

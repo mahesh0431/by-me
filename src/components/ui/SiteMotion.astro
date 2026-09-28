@@ -1,0 +1,76 @@
+<script is:inline>
+  // Pill behind the active nav tab. It stays on the current page and slides
+  // from the previous tab to the new one when you navigate.
+  (() => {
+    if (window.__siteMotionBound === true) return;
+    window.__siteMotionBound = true;
+
+    const storageKey = "nav-glide-from";
+
+    const measure = (nav, link) => {
+      const navRect = nav.getBoundingClientRect();
+      const linkRect = link.getBoundingClientRect();
+      return { x: linkRect.left - navRect.left, w: linkRect.width };
+    };
+
+    const apply = (glide, pos) => {
+      glide.style.setProperty("--x", `${pos.x}px`);
+      glide.style.setProperty("--w", `${pos.w}px`);
+      glide.style.setProperty("--o", "1");
+    };
+
+    const settle = () => {
+      const nav = document.querySelector(".site-nav");
+      const glide = nav?.querySelector(".nav-glide");
+      const active = nav?.querySelector(".nav-link.is-active");
+      if (glide && active) apply(glide, measure(nav, active));
+    };
+
+    const remember = () => {
+      const nav = document.querySelector(".site-nav");
+      const active = nav?.querySelector(".nav-link.is-active");
+      if (!nav || !active) return;
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(measure(nav, active)));
+      } catch {}
+    };
+
+    const initNav = () => {
+      const nav = document.querySelector(".site-nav");
+      if (!nav) return;
+      let glide = nav.querySelector(".nav-glide");
+      if (!glide) {
+        glide = document.createElement("span");
+        glide.className = "nav-glide";
+        glide.setAttribute("aria-hidden", "true");
+        nav.prepend(glide);
+      }
+      const active = nav.querySelector(".nav-link.is-active");
+      if (!active) {
+        glide.style.setProperty("--o", "0");
+        return;
+      }
+
+      let from = null;
+      try {
+        from = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+        sessionStorage.removeItem(storageKey);
+      } catch {}
+
+      glide.classList.add("no-anim");
+      apply(glide, from ?? measure(nav, active));
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          glide.classList.remove("no-anim");
+          apply(glide, measure(nav, active));
+        }),
+      );
+    };
+
+    document.addEventListener("astro:before-preparation", remember);
+    window.addEventListener("pagehide", remember);
+    document.addEventListener("astro:page-load", initNav);
+    window.addEventListener("resize", settle);
+    document.fonts?.ready.then(settle);
+  })();
+</script>
