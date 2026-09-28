@@ -73,3 +73,12 @@ Astro deployment config (`astro.config.mjs`):
 - `trailingSlash: "always"`
 
 GitHub Pages should be configured to use **GitHub Actions** as source.
+
+## License
+
+- **Code** (layouts, components, styles, scripts, and config) is licensed under the
+  [MIT License](LICENSE). Feel free to reuse it for your own site.
+- **Content** is not covered by the MIT License. All writing, talk write-ups, photos, and
+  other media (everything under `src/content/`, `src/assets/`, and the images, videos, and
+  sprites in `public/`) is © Mahesh Palavalli, all rights reserved. Please don't republish
+  it without permission; linking to it is always welcome.
