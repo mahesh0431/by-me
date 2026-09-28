@@ -1,0 +1,680 @@
+/* ==========================================================================
+   Refresh: floating pill nav, soft lifting tiles, gentle entrances.
+   Loaded after global.css so these win over the older editorial rules.
+   ========================================================================== */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --ease-hover: cubic-bezier(0.25, 0.7, 0.35, 1);
+  --tile-radius: 18px;
+}
+
+/* ---------- Header: floating glass pill ---------- */
+.site-header {
+  padding-top: 0.75rem;
+  border-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+/* Soft frosted fade behind the floating nav so scrolled content doesn't collide with it. */
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1.25rem;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--surface-page-rgb), 0.92) 0%,
+    rgba(var(--surface-page-rgb), 0.7) 55%,
+    rgba(var(--surface-page-rgb), 0) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+  pointer-events: none;
+}
+.site-nav {
+  position: relative;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-panel) 82%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+.nav-link {
+  z-index: 1;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease;
+}
+.nav-link::after {
+  display: none;
+}
+.nav-link:hover:not(.is-active) {
+  color: var(--text-primary);
+  background: var(--accent-soft);
+}
+.nav-link.is-active {
+  color: var(--accent-strong);
+}
+.nav-link.is-active:hover {
+  color: var(--accent-strong);
+}
+.nav-glide {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0;
+  width: var(--w, 0);
+  border-radius: 999px;
+  background: var(--surface-panel-strong);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 6px 16px -8px var(--accent-glow);
+  opacity: var(--o, 0);
+  transform: translateX(var(--x, 0));
+  transition:
+    transform 0.6s var(--ease-spring),
+    width 0.6s var(--ease-spring),
+    opacity 0.3s;
+  pointer-events: none;
+}
+.nav-glide.no-anim {
+  transition: none;
+}
+:root[data-theme="dark"] .nav-glide {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.theme-toggle {
+  background: color-mix(in srgb, var(--surface-panel) 82%, transparent);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.4s var(--ease-spring),
+    color 0.2s,
+    border-color 0.2s;
+}
+.theme-toggle:hover {
+  transform: rotate(18deg) scale(1.06);
+}
+@media (max-width: 680px) {
+  .site-header__inner {
+    gap: 0.5rem;
+  }
+  .nav-link {
+    padding: 0.45rem 0.7rem;
+  }
+}
+@media (max-width: 380px) {
+  .nav-link {
+    padding: 0.45rem 0.55rem;
+    font-size: 0.82rem;
+  }
+}
+
+/* ---------- Home intro ---------- */
+@keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(5px);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+@keyframes float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Slow sage glow drifting behind the intro. */
+:is(.page-home, .page-about) .personal-intro {
+  position: relative;
+  isolation: isolate;
+}
+:is(.page-home, .page-about) .personal-intro::before,
+:is(.page-home, .page-about) .personal-intro::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+  animation: fade-in 1.2s ease both;
+}
+:is(.page-home, .page-about) .personal-intro::before {
+  width: 32rem;
+  height: 32rem;
+  left: -11rem;
+  top: -11rem;
+  background: radial-gradient(closest-side, var(--portrait-backdrop), transparent);
+  opacity: 0.75;
+  animation:
+    fade-in 1.2s ease both,
+    drift-a 18s ease-in-out infinite alternate;
+}
+:is(.page-home, .page-about) .personal-intro::after {
+  width: 28rem;
+  height: 24rem;
+  right: -4rem;
+  top: -3rem;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, #f1dcb4 70%, var(--intro-lilac)),
+    transparent
+  );
+  opacity: 0.5;
+  animation:
+    fade-in 1.2s ease both,
+    drift-b 22s ease-in-out infinite alternate;
+}
+:root[data-theme="dark"] :is(.page-home, .page-about) .personal-intro::before {
+  opacity: 0.45;
+}
+:root[data-theme="dark"] :is(.page-home, .page-about) .personal-intro::after {
+  background: radial-gradient(closest-side, #3d4a2c, transparent);
+  opacity: 0.45;
+}
+@keyframes drift-a {
+  50% {
+    transform: translate(8rem, 3rem) scale(1.12);
+  }
+  to {
+    transform: translate(3rem, 7rem) scale(0.95);
+  }
+}
+@keyframes drift-b {
+  50% {
+    transform: translate(-10rem, 4rem) scale(0.88);
+  }
+  to {
+    transform: translate(-3rem, -2rem) scale(1.08);
+  }
+}
+
+/* Portrait pops in, then floats gently. */
+:is(.page-home, .page-about) .personal-intro__portrait {
+  box-shadow: 0 28px 60px -28px color-mix(in srgb, var(--accent) 70%, transparent);
+  animation:
+    pop-in 0.75s var(--ease-spring) both,
+    float 7s ease-in-out 0.9s infinite;
+}
+
+/* Heading: each word rises out of a mask, then a wave. */
+.hero-word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: bottom;
+}
+.hero-word__inner {
+  display: inline-block;
+  transform: translateY(110%);
+  animation: word-rise 0.8s var(--ease-out) forwards;
+  animation-delay: calc(0.08s + var(--i, 0) * 85ms);
+}
+@keyframes word-rise {
+  to {
+    transform: none;
+  }
+}
+.hero-name {
+  color: var(--accent-strong);
+}
+.hero-wave {
+  display: inline-block;
+  margin-left: 0.2em;
+  transform-origin: 70% 80%;
+  cursor: default;
+  animation:
+    fade-in 0.35s ease 0.35s both,
+    wave 1.9s ease-in-out 0.6s;
+}
+.hero-wave:hover {
+  animation: wave 1.2s ease-in-out;
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  12%,
+  36% {
+    transform: rotate(16deg);
+  }
+  24% {
+    transform: rotate(-8deg);
+  }
+  48% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+  72% {
+    transform: rotate(0);
+  }
+}
+
+.page-home .personal-intro__lead,
+.page-home .personal-intro .personal-link {
+  animation: soft-rise 0.75s var(--ease-out) both;
+}
+.page-home .personal-intro__lead {
+  animation-delay: 0.28s;
+}
+.page-home .personal-intro .personal-link {
+  animation-delay: 0.4s;
+}
+
+/* "More about me": underline draws in, arrow nudges on hover. */
+.personal-link {
+  text-decoration: none;
+  padding-bottom: 0.15em;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+}
+.page-home .personal-intro .personal-link {
+  background-size: 0 1px;
+  animation:
+    soft-rise 0.75s var(--ease-out) 0.4s both,
+    underline-draw 0.65s var(--ease-out) 0.8s forwards;
+}
+@keyframes underline-draw {
+  to {
+    background-size: 100% 1px;
+  }
+}
+.personal-link span {
+  display: inline-block;
+  transition: transform 0.35s var(--ease-spring);
+}
+.personal-link:hover span {
+  transform: translateX(5px);
+}
+
+@media (max-width: 680px) {
+  :is(.page-home, .page-about) .personal-intro::before {
+    width: 22rem;
+    height: 22rem;
+    left: -7rem;
+  }
+  :is(.page-home, .page-about) .personal-intro::after {
+    width: 18rem;
+    height: 18rem;
+  }
+}
+
+/* ---------- Tiles: home "Recent" + Writing / Talks lists ---------- */
+.home-recent::after {
+  display: none;
+}
+:root :is(.page-home .recent-card, .page-collection .post-card),
+:root :is(.page-home .recent-card, .page-collection .post-card):last-child {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--tile-radius);
+  background: color-mix(in srgb, var(--surface-panel) 58%, transparent);
+  box-shadow:
+    0 0 0 transparent,
+    0 0 0 transparent;
+  transition:
+    transform 0.35s var(--ease-hover),
+    box-shadow 0.35s var(--ease-hover),
+    border-color 0.3s var(--ease-hover),
+    background-color 0.3s var(--ease-hover);
+}
+:root :is(.page-home .recent-card, .page-collection .post-card) + :is(.recent-card, .post-card) {
+  margin-top: 0.75rem;
+}
+:root :is(.page-home .recent-card, .page-collection .post-card):is(:hover, :focus-within) {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+  background: var(--surface-panel-strong);
+  box-shadow:
+    0 14px 34px -14px rgba(28, 40, 32, 0.14),
+    0 22px 44px -26px var(--accent-glow);
+}
+:root :is(.page-home .recent-card, .page-collection .post-card)::before {
+  display: none;
+}
+:root .page-home .recent-card__badge {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+/* Fade tiles in as they scroll into view (no JS; older browsers just show them). */
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@supports (animation-timeline: view()) {
+  :root .page-collection .post-card {
+    animation: tile-in linear backwards;
+    animation-timeline: view();
+    animation-range: entry 0% entry 50%;
+  }
+}
+
+/* Home tiles arrive one after another on load. */
+:root .page-home .recent-card {
+  animation: tile-in 0.65s var(--ease-out) backwards;
+  animation-delay: calc(0.35s + var(--n, 0) * 65ms);
+}
+:root .page-home .recent-card:nth-child(1) {
+  --n: 0;
+}
+:root .page-home .recent-card:nth-child(2) {
+  --n: 1;
+}
+:root .page-home .recent-card:nth-child(3) {
+  --n: 2;
+}
+:root .page-home .recent-card:nth-child(4) {
+  --n: 3;
+}
+:root .page-home .recent-card:nth-child(5) {
+  --n: 4;
+}
+
+/* Title turns accent and an arrow slides in on hover. */
+:root
+  :is(.page-home .recent-card, .page-collection .post-card)
+  :is(.recent-card__link, .post-card__link) {
+  transition: color 0.3s var(--ease-hover);
+}
+:root
+  :is(.page-home .recent-card, .page-collection .post-card):is(:hover, :focus-within)
+  :is(.recent-card__link, .post-card__link) {
+  color: var(--accent-strong);
+}
+:root .page-home .recent-card__chevron {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.1rem;
+  display: inline-block;
+  color: var(--accent);
+  font-size: 1.35rem;
+  line-height: 1;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 0.3s var(--ease-hover),
+    transform 0.35s var(--ease-hover);
+}
+:root .page-home .recent-card:is(:hover, :focus-within) .recent-card__chevron {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 680px) {
+  :root .page-home .recent-card__chevron {
+    display: none;
+  }
+  :root :is(.page-home .recent-card, .page-collection .post-card),
+  :root :is(.page-home .recent-card, .page-collection .post-card):last-child {
+    padding: 1.05rem 1.15rem;
+  }
+  :root :is(.page-home .recent-card, .page-collection .post-card) + :is(.recent-card, .post-card) {
+    margin-top: 0.6rem;
+  }
+}
+
+/* ---------- About: same language as Home ---------- */
+.page-about .personal-intro h1 {
+  font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.page-about .personal-intro h1,
+.page-about .personal-intro__lead,
+.page-about .personal-intro__copy > .personal-social {
+  animation: soft-rise 0.75s var(--ease-out) both;
+}
+.page-about .personal-intro__lead {
+  animation-delay: 0.12s;
+}
+.page-about .personal-intro__copy > .personal-social {
+  animation-delay: 0.24s;
+}
+
+/* Social links as small pills. */
+.personal-intro .personal-social {
+  gap: 0.5rem;
+}
+.personal-intro .personal-social a {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-panel) 60%, transparent);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition:
+    transform 0.35s var(--ease-hover),
+    border-color 0.3s var(--ease-hover),
+    color 0.3s var(--ease-hover),
+    background-color 0.3s var(--ease-hover);
+}
+.personal-intro .personal-social a:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--surface-panel-strong);
+  color: var(--accent-strong);
+}
+
+/* Story sections become calm tiles instead of ruled rows. */
+.page-about .about-story {
+  margin-top: 2.5rem;
+}
+.page-about .about-story__section {
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--tile-radius);
+  background: color-mix(in srgb, var(--surface-panel) 58%, transparent);
+}
+.page-about .about-story__section + .about-story__section {
+  margin-top: 0.75rem;
+}
+.page-about .about-story__section {
+  animation: tile-in 0.65s var(--ease-out) backwards;
+}
+.page-about .about-story__section:nth-child(1) {
+  animation-delay: 0.35s;
+}
+.page-about .about-story__section:nth-child(2) {
+  animation-delay: 0.42s;
+}
+.page-about .about-story__section:nth-child(3) {
+  animation-delay: 0.49s;
+}
+.page-about .about-story__section .personal-social {
+  gap: 0.75rem 1.5rem;
+  padding-top: 0.25rem;
+}
+.page-about .personal-disclaimer {
+  margin-top: 1.25rem;
+  padding: 0 0.25rem;
+  border-top: 0;
+  color: var(--text-tertiary);
+}
+@media (max-width: 680px) {
+  .page-about .about-story {
+    margin-top: 1.75rem;
+  }
+  .page-about .about-story__section {
+    padding: 1.15rem 1.2rem;
+    gap: 0.5rem;
+  }
+  .page-about .personal-intro h1 {
+    font-size: clamp(1.6rem, 6.5vw, 2rem);
+  }
+}
+
+/* ---------- Writing / Talks: no divider lines, tiles carry the structure ---------- */
+:root .page-collection .page-heading {
+  padding-bottom: 0.75rem;
+  border-bottom: 0;
+}
+:root .page-collection .archive-panel__heading {
+  padding: 0.25rem 0.25rem 0.85rem;
+  border-bottom: 0;
+}
+:root .page-collection .archive-panel__count {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ---------- Page headers on Writing / Talks / articles: same soft entrance ---------- */
+.page-collection .page-heading > *,
+.page-article .article-hero > * {
+  animation: soft-rise 0.7s var(--ease-out) backwards;
+}
+.page-collection .page-heading > :nth-child(2),
+.page-article .article-hero > :nth-child(2) {
+  animation-delay: 0.08s;
+}
+.page-collection .page-heading > :nth-child(3),
+.page-article .article-hero > :nth-child(3) {
+  animation-delay: 0.16s;
+}
+.page-collection .page-heading > :nth-child(n + 4),
+.page-article .article-hero > :nth-child(n + 4) {
+  animation-delay: 0.24s;
+}
+
+.article-hero-media {
+  height: auto;
+}
+
+/* One heading weight across every page. */
+:root :is(.page-collection .page-heading__title, .page-article .article-title) {
+  font-weight: 500;
+}
+
+/* ---------- 404 ---------- */
+.page-not-found {
+  background:
+    radial-gradient(ellipse 40rem 30rem at 50% 10%, var(--intro-wash), transparent 75%),
+    var(--surface-page);
+}
+.not-found {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: clamp(3rem, 12vh, 7rem) 0 4rem;
+  text-align: center;
+}
+.not-found > * {
+  margin: 0;
+  animation: soft-rise 0.7s var(--ease-out) backwards;
+}
+.not-found__code {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+}
+.not-found__title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  animation-delay: 0.08s;
+}
+.not-found__text {
+  color: var(--text-secondary);
+  animation-delay: 0.16s;
+}
+.not-found__link {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.6rem 1.15rem;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--surface-panel-strong);
+  color: var(--accent-strong);
+  font-weight: 500;
+  text-decoration: none;
+  animation-delay: 0.24s;
+  transition:
+    transform 0.35s var(--ease-hover),
+    border-color 0.3s var(--ease-hover);
+}
+.not-found__link:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* ---------- Mobile: About intro stacks and centres exactly like Home ---------- */
+@media (max-width: 680px) {
+  .page-about .personal-intro {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 1.25rem;
+    text-align: center;
+  }
+  .page-about .personal-intro__portrait {
+    grid-column: 1;
+    grid-row: 1;
+    width: 7.5rem;
+  }
+  .page-about .personal-intro h1 {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: clamp(2rem, 8.5vw, 2.5rem);
+  }
+  .page-about .personal-intro__copy .personal-intro__lead {
+    grid-column: 1;
+    grid-row: 3;
+    width: 100%;
+  }
+  .page-about .personal-intro__copy .personal-social {
+    grid-column: 1;
+    grid-row: 4;
+    justify-content: center;
+  }
+  .page-about .about-story__section {
+    text-align: left;
+  }
+}
+
+/* Reduced motion: the global rule stops animations, so show end states. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-word__inner {
+    transform: none;
+  }
+  .page-home .personal-intro .personal-link {
+    background-size: 100% 1px;
+  }
+  .nav-glide {
+    transition: none;
+  }
+}

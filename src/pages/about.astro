@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import portrait from '../assets/images/mahesh-editorial-v2.webp';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { LINKEDIN_URL, X_URL } from '../lib/site';
 import { withBasePath } from '../lib/paths';
@@ -24,14 +26,15 @@ const structuredData = [
   <article class="personal-about">
     <header class="personal-intro">
       <div class="personal-intro__portrait">
-      <img
-        src={withBasePath('/images/mahesh-editorial-v2.webp')}
+      <Image
+        src={portrait}
         alt={profile.data.name}
         class="personal-intro__photo"
-        width="720"
-        height="900"
+        widths={[240, 480, 720]}
+        sizes="(max-width: 680px) 7.5rem, 16rem"
+        loading="eager"
         fetchpriority="high"
-      />
+        />
       </div>
       <div class="personal-intro__copy">
         <h1>A little about me.</h1>

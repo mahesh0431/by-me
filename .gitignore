@@ -34,3 +34,6 @@ test-results/
 **/*.test.ts
 vitest.config.ts
 AGENTS.md
+
+# local Claude Code settings and worktrees
+.claude/

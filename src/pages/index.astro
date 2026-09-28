@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import portrait from '../assets/images/mahesh-editorial-v2.webp';
 import RecentEntryCard from '../components/home/RecentEntryCard.astro';
 import { withBasePath } from '../lib/paths';
 import { getBlogPosts, getPostRouteSlug } from '../lib/blog';
@@ -30,6 +32,8 @@ const recentSpeaking = (await getSpeakingEntries()).map((entry) => ({
 const recentEntries = [...recentPosts, ...recentSpeaking]
   .sort((left, right) => right.date.getTime() - left.date.getTime())
   .slice(0, 5);
+const headingText = `${profile.data.homeHeading}.`;
+const headingWords = headingText.split(' ');
 const pageDescription =
   'Mahesh Palavalli is an architect in SAP’s Office of the CTO, writing about enterprise architecture, coding, AI, SAP BTP, agentic systems, and real-world enterprise systems.';
 ---
@@ -42,18 +46,29 @@ const pageDescription =
 >
   <section class="personal-intro" aria-labelledby="welcome-title">
     <div class="personal-intro__portrait">
-      <img
-        src={withBasePath('/images/mahesh-editorial-v2.webp')}
+      <Image
+        src={portrait}
         alt={profile.data.name}
         class="personal-intro__photo"
-        width="720"
-        height="900"
+        widths={[240, 480, 720]}
+        sizes="(max-width: 680px) 7.5rem, 16rem"
+        loading="eager"
         fetchpriority="high"
-      />
+        />
     </div>
 
     <div class="personal-intro__copy">
-      <h1 id="welcome-title">{profile.data.homeHeading}.</h1>
+      <h1 id="welcome-title" class="hero-title" aria-label={headingText}>
+        {headingWords.map((word, i) => (
+          <>
+            <span class="hero-word" style={`--i:${i}`} aria-hidden="true">
+              <span class:list={['hero-word__inner', i === headingWords.length - 1 && 'hero-name']}>{word}</span>
+            </span>
+            {i < headingWords.length - 1 && ' '}
+          </>
+        ))}
+        <span class="hero-wave" aria-hidden="true">👋</span>
+      </h1>
       <p class="personal-intro__lead">
         Architect in SAP’s Office of the CTO. I work on enterprise AI and SAP BTP,
         and write about what it takes to turn ideas into working systems.
